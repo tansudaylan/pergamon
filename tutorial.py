@@ -4,8 +4,10 @@ import pergamon
 
 
 def cnfg_tess():
-
+    
+    # Fig 1
     pergamon.init( \
+                 typepopl='tic8'
                  )
 
 

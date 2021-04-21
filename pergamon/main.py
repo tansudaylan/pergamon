@@ -39,8 +39,8 @@ def retr_llik_corr(para, gdat):
 
 
 def init( \
-        listtypepopl=['hjuppcur', 'exoptran'], \
-        listtypemeas=['tess', 'lsst'], \
+        listtypepopl=['2minnomi'], \
+        listtypemeas=['tess'], \
         plotfiletype='pdf', \
         typedata = 'mock', \
         **args, \
@@ -107,8 +107,8 @@ def init( \
         print('gdat.listtypepopl[k]')
         print(gdat.listtypepopl[k])
 
+        # get the dictionaries holding the population properties
         dictpopl = dict()
-        # read the population
         if gdat.listtypepopl[k] == 'hjuppcur':
             listlablinpt = ['log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', '$A_g$']
             listnameinpt = ['logg', 'ptmp', 'meta', 'tday', 'albe']
@@ -117,48 +117,25 @@ def init( \
             path = gdat.pathdata + 'catlpcurtess.csv'
             dictpopl = pd.read_csv(path)
 
-        # get the dictionaries holding the population properties
-        if gdat.listtypepopl[k] == 'nomitess':
+        if gdat.listtypepopl[k] == '2minnomi':
             numbtsec = 27
-            dictlistcatl = dict()
             # recall and precision
             k = 0
-            for tsec in range(1, numbtsec + 1):
-                print('Sector %d...' % tsec)
-                
-                dictpopl = miletos.retr_dictcatltic8(pathdata, tsec)
-                if k == 0:
-                    listname = list(dictpopl.keys())
-                    listname = listname[1:]
-                    print('listname')
-                    print(listname)
-                    for name in listname:
-                        dictlistcatl[name] = []
-                    k += 1
-                
-                for name in listname:
-                    if name.startswith('Unnamed'):
-                        continue
-                        raise Exception('')
-                    dictlistcatl[name].append(dictpopl[name])
-        
-            for name in listname:
-                if name.startswith('Unnamed'):
-                    raise Exception('')
-                    continue
-                
-                print('temp') 
-                # bypassing weird problem with from_dict()
-                if len(dictlistcatl[name]) == 0:
-                    continue
-
-                dictpopl[name] = np.concatenate(dictlistcatl[name])
-                #dictpopl[name] = np.unique(dictpopl[name])
+            dictpopl = miletos.retr_dictcatltic8(gdat.listtypepopl[k])
             dictpopl['nois'] = retr_noistess(dictpopl['tmag'])
         
         if gdat.listtypepopl[k] == 'toyystar':
             listradistar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
             listmassstar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
+        
+            listlablpara = [['RA', 'deg'], ['DEC', ''], ['Tmag', ''], ['$R_s$', '$R_{\odot}$'], ['$M_s$', '$M_{\odot}$'], [r'$\sigma$', ''], \
+                                                                            ['$i$', 'deg'], ['$\cos i$', ''], ['$P$', 'days'], ['$M_c$', '$M_{\odot}$'], \
+                                                                            ['$M_t$', '$M_{\odot}$'], ['$a$', 'AU'], ['$(R_s+R_c)/a$', ''], \
+                                                                            ['SL Duration', 'days'], \
+                                                                            ['SL Amplitude', ''], \
+                                                                            ['SNR', '']]
+            listscalpara = ['self', 'self', 'self', 'logt', 'logt', 'logt', 'self', 'self', \
+                                                    'logt', 'logt', 'logt', 'self', 'self', 'self', 'logt', 'logt']
         
         if gdat.listtypepopl[k] == 'exoptran':
             dictpopl = retr_dictexar()
@@ -225,18 +202,11 @@ def init( \
         for k in indxnametotl:
            listsamp[:, k] = dictpopl[listnametotl[k]]
         
-#['r    asc', 'decl', 'tmag', 'radistar', 'massstar', 'nois', 'incl', 'cosi', 'peri', 'masscomp', 'masstotl', 'smax', 'rsma', 'duratran', 'amplslen', 'booldete']
+#['rasc', 'decl', 'tmag', 'radistar', 'massstar', 'nois', 'incl', 'cosi', 'peri', 'masscomp', 'masstotl', 'smax', 'rsma', 'duratran', 'amplslen', 'booldete']
 
         # visualize the population
         print('Visualizing the population...')
     
-        listlablpara = [['RA', 'deg'], ['DEC', ''], ['Tmag', ''], ['$R_s$', '$R_{\odot}$'], ['$M_s$', '$M_{\odot}$'], [r'$\sigma$', ''], \
-                                                                        ['$i$', 'deg'], ['$\cos i$', ''], ['$P$', 'days'], ['$M_c$', '$M_{\odot}$'], \
-                                                                        ['$M_t$', '$M_{\odot}$'], ['$a$', 'AU'], ['$(R_s+R_c)/a$', ''], \
-                                                                        ['SL Duration', 'days'], \
-                                                                        ['SL Amplitude', ''], \
-                                                                        ['SNR', '']]
-        listscalpara = ['self', 'self', 'self', 'logt', 'logt', 'logt', 'self', 'self', 'logt', 'logt', 'logt', 'self', 'self', 'self', 'logt', 'logt']
         boolscat = False
         for k in range(2):  
             if k == 0:
