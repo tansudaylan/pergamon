@@ -5,10 +5,28 @@ import pergamon
 
 def cnfg_tess():
     
-    # Fig 1
-    pergamon.init( \
-                 typepopl='tic8'
-                 )
+    # Figures for XRP
+    # Fig 1: stellar type vs. magnitude
+    # atmospheric escape rate
+    # Fig 2: completeness and recall for flare
+    # Spot model:
 
+    pergamon.init( \
+                 listtypepopl=['2minnomi'], \
+                 )
+        
+
+def cnfg_spot():
+    
+    # Figures for XRP
+    # Fig 1: stellar type vs. magnitude
+    # atmospheric escape rate
+    # Fig 2: completeness and recall for flare
+    # Spot model:
+
+    pergamon.init( \
+                 listtypepopl=['2minnomi', '20sc'], \
+                 )
+        
 
 globals().get(sys.argv[1])()
