@@ -2,15 +2,15 @@ import os
 import sys
 
 import numpy as np
-import scipy.stats
-import matplotlib.pyplot as plt
-import pandas as pd
+#import scipy.stats
+#import matplotlib.pyplot as plt
 
 import ephesus
+from tdpy import gdatstrt
 import tdpy
 from tdpy import summgene 
 import miletos
-
+import pcat
 
 def retr_modl_corr(gdat, para, inpt):
     
@@ -39,10 +39,19 @@ def retr_llik_corr(para, gdat):
 
 
 def init( \
+        # type of the population
+        ## '2minnomi': 2-minute cadence target list of TESS during the nominal mission
         listtypepopl=['2minnomi'], \
+        
+        typeobjtdete='exopmock', \
+
+        # type of measurement
+        ## 'tess': type of measurement
         listtypemeas=['tess'], \
-        plotfiletype='pdf', \
+        # type of the data
         typedata = 'mock', \
+        # plotting
+        typefileplot='pdf', \
         **args, \
         ):
     
@@ -53,7 +62,7 @@ def init( \
     model the density and selection effects to determine the occurence rate
     """
     # construct global object
-    gdat = tdpy.util.gdatstrt()
+    gdat = tdpy.gdatstrt()
     
     # copy unnamed inputs to the global object
     for attr, valu in locals().items():
@@ -100,74 +109,117 @@ def init( \
     
     indxsamp = np.arange(numbsamp)
     
+    dictpopl = dict()
     gdat.numbpopl = len(gdat.listtypepopl)
     gdat.indxpopl = np.arange(gdat.numbpopl)
     for k in gdat.indxpopl:
         
-        print('gdat.listtypepopl[k]')
-        print(gdat.listtypepopl[k])
-
+        print('Population: %s' % gdat.listtypepopl[k])
+        
+        dictindxpopl = dict()
         # get the dictionaries holding the population properties
-        dictpopl = dict()
         if gdat.listtypepopl[k] == 'hjuppcur':
             listlablinpt = ['log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', '$A_g$']
             listnameinpt = ['logg', 'ptmp', 'meta', 'tday', 'albe']
             numbcompinpt = len(listnameinpt)
             indxcompinpt = np.arange(numbcompinpt)
             path = gdat.pathdata + 'catlpcurtess.csv'
-            dictpopl = pd.read_csv(path)
+            dictpopl['hjuppcur'] = pd.read_csv(path)
 
         if gdat.listtypepopl[k] == '2minnomi':
-            numbtsec = 27
-            # recall and precision
-            k = 0
-            dictpopl = miletos.retr_dictcatltic8(gdat.listtypepopl[k])
-            dictpopl['nois'] = retr_noistess(dictpopl['tmag'])
-        
+            dictpopl['2minnomi'] = miletos.retr_dictcatltic8(gdat.listtypepopl[k])
+            dictpopl['2minnomi']['nois'] = ephesus.retr_noistess(dictpopl['2minnomi']['tmag'])
+
         if gdat.listtypepopl[k] == 'toyystar':
             listradistar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
             listmassstar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
         
-            listlablpara = [['RA', 'deg'], ['DEC', ''], ['Tmag', ''], ['$R_s$', '$R_{\odot}$'], ['$M_s$', '$M_{\odot}$'], [r'$\sigma$', ''], \
-                                                                            ['$i$', 'deg'], ['$\cos i$', ''], ['$P$', 'days'], ['$M_c$', '$M_{\odot}$'], \
-                                                                            ['$M_t$', '$M_{\odot}$'], ['$a$', 'AU'], ['$(R_s+R_c)/a$', ''], \
-                                                                            ['SL Duration', 'days'], \
-                                                                            ['SL Amplitude', ''], \
-                                                                            ['SNR', '']]
-            listscalpara = ['self', 'self', 'self', 'logt', 'logt', 'logt', 'self', 'self', \
-                                                    'logt', 'logt', 'logt', 'self', 'self', 'self', 'logt', 'logt']
+        if typeobjtdete == 'exopexar':
+            dictpopl['exopexar'] = retr_dictexar()
+            dictpopl['exopexar']['nois'] = ephesus.retr_noistess(dictpopl['exopexar']['vmagsyst'])
         
-        if gdat.listtypepopl[k] == 'exoptran':
-            dictpopl = retr_dictexar()
-            dictpopl['nois'] = retr_noistess(dictpopl['vmagsyst'])
+        if typeobjtdete == 'exopmock':
         
-        if gdat.listtypepopl[k] == 'nomiexop':
-            dictpopl['incl'] = np.random.rand(numbtarg) * 90.
-            dictpopl['cosi'] = np.cos(np.pi / 180. * dictpopl['incl'])
+            dictpopl['2minnomi']['probexop'] = pcat.icdf_gaustrun(np.random.rand(dictpopl['2minnomi']['radistar'].size), 0.02, 0.002, 0, np.inf)
+            dictpopl['2minnomi']['boolexop'] = np.random.rand(dictpopl['2minnomi']['radistar'].size) < dictpopl['2minnomi']['probexop']
             
-            dictpopl['peri'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 0.3, 20., 2.)
-            dictpopl['masscomp'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
-            dictpopl['masstotl'] = dictpopl['masscomp'] + dictpopl['massstar']
-            dictpopl['smax'] = retr_smaxkepl(dictpopl['peri'], dictpopl['masstotl'])
-            dictpopl['rsma'] = dictpopl['radistar'] / dictpopl['smax'] / factaurs
-            dictpopl['duratran'] = 24. * retr_duratran(dictpopl['peri'], dictpopl['rsma'], dictpopl['cosi'])
-            if gdat.listtypepopl[k] == 'slen':
+            dictpopl['exopmock'] = dict()
+            indx = np.where(dictpopl['2minnomi']['boolexop'])[0]
+            for name in dictpopl['2minnomi'].keys():
+                dictpopl['exopmock'][name] = dictpopl['2minnomi'][name][indx]
+
+            numbtarg = dictpopl['exopmock']['radistar'].size
+            
+            dictpopl['exopmock']['incl'] = np.random.rand(numbtarg) * 90.
+            dictpopl['exopmock']['cosi'] = np.cos(np.pi / 180. * dictpopl['exopmock']['incl'])
+            dictpopl['exopmock']['peri'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 0.3, 20., 2.)
+            dictpopl['exopmock']['radiplan'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 1., 23., 2.)
+            if typeobjtdete == 'slen':
+                dictpopl['exopmock']['masscomp'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
+                dictpopl['exopmock']['masstotl'] = dictpopl['exopmock']['masscomp'] + dictpopl['exopmock']['massstar']
+            if typeobjtdete == 'exopmock':
+                dictpopl['exopmock']['massplan'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
+                dictpopl['exopmock']['masstotl'] = dictpopl['exopmock']['massplan'] / factmsme + dictpopl['exopmock']['massstar']
+            dictpopl['exopmock']['smax'] = ephesus.retr_smaxkepl(dictpopl['exopmock']['peri'], dictpopl['exopmock']['masstotl'])
+            dictpopl['exopmock']['rsma'] = dictpopl['exopmock']['radistar'] / dictpopl['exopmock']['smax'] / factaurs
+            
+            dictpopl['exopmocktran'] = dict()
+            indx = np.where(dictpopl['exopmock']['rsma'] > dictpopl['exopmock']['cosi'])[0]
+            for name in dictpopl['exopmock'].keys():
+                dictpopl['exopmocktran'][name] = dictpopl['exopmock'][name][indx]
+            
+            dictpopl['exopmocktran']['duratran'] = ephesus.retr_duratran(dictpopl['exopmock']['peri'][indx], \
+                                                                               dictpopl['exopmock']['rsma'][indx], \
+                                                                               dictpopl['exopmock']['cosi'][indx])
+            if typeobjtdete == 'slen':
                 dictpopl['amplslen'] = retr_amplslen(dictpopl['peri'], dictpopl['radistar'], dictpopl['masscomp'], dictpopl['massstar'])
                 dictpopl['s2no'] = np.sqrt(dictpopl['duratran']) * dictpopl['amplslen'] / dictpopl['nois']
-            if gdat.listtypepopl[k] == 'exoptran':
-                dictpopl['dept'] = dictpopl['rrat']**2
-                dictpopl['s2no'] = np.sqrt(dictpopl['duratran']) * dictpopl['dept'] / dictpopl['nois']
+            if typeobjtdete == 'exopmock':
+                dictpopl['exopmocktran']['rrat'] = dictpopl['exopmocktran']['radiplan'] / dictpopl['exopmocktran']['radistar'] / factrsre
+                dictpopl['exopmocktran']['dept'] = 1e6 * dictpopl['exopmocktran']['rrat']**2 # [ppm]
+                
+                print('temp')
+                dictpopl['exopmocktran']['numbtsec'] = np.ones_like(dictpopl['exopmocktran']['peri'])
+                
+                dictpopl['exopmocktran']['numbtran'] = 27.3 * dictpopl['exopmocktran']['numbtsec'] / dictpopl['exopmocktran']['peri']
+                dictpopl['exopmocktran']['s2nrblss'] = np.sqrt(dictpopl['exopmocktran']['numbtran'] * dictpopl['exopmocktran']['duratran']) * \
+                                                                    dictpopl['exopmocktran']['dept'] / dictpopl['exopmocktran']['nois']
+                
+                dictpopl['exopmocktran']['booldete'] = dictpopl['exopmocktran']['s2nrblss'] > 7
         
-        # add any remaining features
-        #booldete = dictpopl['s2no'] > 5
-        #indxdete = np.where(booldete)[0]
+                # add the population of detections
+                #dictpopl['exoptrandete'] = dict()
+                #indx = np.random.choice(np.arange(dictpopl['2minnomi']['radistar'].size), size=2500)
+                #for name in dictpopl['2minnomi'].keys():
+                #    dictpopl['exoptrandete'][name] = dictpopl['2minnomi'][name][indx]
+            
+                # add the population of detections
+                dictpopl['exoptranmockdete'] = dict()
+                indx = np.where(dictpopl['exopmocktran']['booldete'])[0]
+                for name in dictpopl['exopmocktran'].keys():
+                    dictpopl['exoptranmockdete'][name] = dictpopl['exopmocktran'][name][indx]
+            
+    gdat.listnamepoplfinl = list(dictpopl.keys())
+    gdat.numbpoplfinl = len(gdat.listnamepoplfinl)
+    gdat.indxpoplfinl = np.arange(gdat.numbpoplfinl)
 
-        listnametotltemp = list(dictpopl.keys())
-        listnametotl = []
-        for name in listnametotltemp:
-            if not isinstance(dictpopl[name][0], str):
-                listnametotl.append(name)
+    # make sure fields with strings are not included
+    #if gdat.listtypepopl[k] != '2minnomi':
+    #    listnametotl = []
+    #    for name in listnametotltemp:
+    #        if not isinstance(dictpopl[name][0], str):
+    #            listnametotl.append(name)
+    #else:
+    #    listnametotl = listnametotltemp
+        
+    for k in gdat.indxpoplfinl:
+        
+        namepopl = gdat.listnamepoplfinl[k]
+        print(namepopl)
+        listnametotl = list(dictpopl[namepopl].keys())
 
+        listlablpara, listscalpara = tdpy.retr_listlablscalpara(listnametotl)
+        
         numbnametotl = len(listnametotl)
         indxnametotl = np.arange(numbnametotl)
         
@@ -181,42 +233,36 @@ def init( \
         #    dictpopl[name] = dictpopl[name][indx]
         
         # check number of targets for each feature
-        numbkeys = len(listnametotltemp)
+        numbkeys = len(listnametotl)
         numbtarg = np.empty(numbkeys, dtype=int)
-        for k in range(numbkeys):
-            numbtarg[k] = dictpopl[listnametotltemp[k]].size
+        for n in range(numbkeys):
+            numbtarg[n] = dictpopl[namepopl][listnametotl[n]].size
         if np.unique(numbtarg).size != 1:
-            print('listnametotltemp')
-            print(listnametotltemp)
+            print('listnametotl')
+            print(listnametotl)
             print('numbtarg')
             print(numbtarg)
             raise Exception('')
         numbtarg = numbtarg[0]
         
-        for name in listnametotl:
-            print('name')
-            print(name)
-            summgene(dictpopl[name])
-        
         listsamp = np.empty((numbtarg, numbnametotl))
-        for k in indxnametotl:
-           listsamp[:, k] = dictpopl[listnametotl[k]]
-        
-#['rasc', 'decl', 'tmag', 'radistar', 'massstar', 'nois', 'incl', 'cosi', 'peri', 'masscomp', 'masstotl', 'smax', 'rsma', 'duratran', 'amplslen', 'booldete']
+        for n in indxnametotl:
+            listsamp[:, n] = dictpopl[namepopl][listnametotl[n]]
+            
+            print(listnametotl[n])
+            summgene(listsamp[:, n], boolfull=True)
+            print('')
 
         # visualize the population
         print('Visualizing the population...')
-    
         boolscat = False
-        for k in range(2):  
-            if k == 0:
-                strg = 'popl'
-                listsamptemp = listsamp
-            if k == 1:
-                strg = 'popldete'
-                listsamptemp = listsamp[indxdete, :]
-            tdpy.mcmc.plot_grid(gdat.pathimag, strg, listsamptemp, listlablpara, boolscat=boolscat, listscalpara=listscalpara)#, join=True)
+        tdpy.mcmc.plot_grid(gdat.pathimag, gdat.listnamepoplfinl[k], listsamp, listlablpara, boolscat=boolscat, \
+                                                        listscalpara=listscalpara, typefileplot=typefileplot)#, join=True)
+        
+        print('')
 
+    for k in gdat.indxpoplfinl:
+        
         # search for correlations
         print('Searching for correlations...')    
 
