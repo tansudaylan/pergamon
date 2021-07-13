@@ -13,10 +13,10 @@ from tdpy import summgene
 import miletos
 import pcat
 
-def retr_modl_corr(gdat, para, inpt):
+def retr_modl_corr(gdat, feat, inpt):
     
-    angl = para[0]
-    gamm = para[1]
+    angl = feat[0]
+    gamm = feat[1]
 
     slop = -1. / np.tan(angl)
     intc = gamm / np.sin(angl)
@@ -26,10 +26,10 @@ def retr_modl_corr(gdat, para, inpt):
     return line, []
 
 
-def retr_llik_corr(para, gdat):
+def retr_llik_corr(feat, gdat):
     
-    angl = para[0]
-    gamm = para[1]
+    angl = feat[0]
+    gamm = feat[1]
 
     dist = np.cos(angl) * gdat.tempfrst + np.sin(angl) * gdat.tempseco - gamm
     vari = np.cos(angl)**2 * gdat.tempfrststdv**2 + np.sin(angl)**2 * gdat.tempsecostdv**2
@@ -44,7 +44,7 @@ def init( \
         ## '2minnomi': 2-minute cadence target list of TESS during the nominal mission
         typepopl=['2minnomi'], \
         
-        listpoplsubb=['exopmock'], \
+        listpopl=['exopmock'], \
 
         # type of measurement
         ## 'tess': type of measurement
@@ -91,8 +91,8 @@ def init( \
     
     print('typepopl')
     print(typepopl)
-    print('listpoplsubb')
-    print(listpoplsubb)
+    print('listpopl')
+    print(listpopl)
 
     ## conversion factors
     dictfact = ephesus.retr_factconv()
@@ -118,53 +118,120 @@ def init( \
     indxsamp = np.arange(numbsamp)
     
     dictpopl = dict()
-    gdat.numbpoplsubb = len(gdat.typepopl)
-    gdat.indxpoplsubb = np.arange(gdat.numbpoplsubb)
+    gdat.numbpopl = len(gdat.typepopl)
+    gdat.indxpopl = np.arange(gdat.numbpopl)
         
     if typepopl == 'fstr':
-        pathbase = os.environ['DATA'] + '/external/FaintStars/combined/'
+        
+        dictpopl['fstr'] = dict()
+        dictpopl['fstrastr'] = dict()
+        
+        pathfstr = '/Users/tdaylan/Documents/work/data/external/FaintStars/'
+        path = pathfstr + 'metr/metr_sc01.txt'
+        print('Reading from %s...' % path)
+        objt = open(path, 'r')
+        k = 0
+        ticifstr = []
+        for line in objt:
+            linesplt = line.split(' ')
+            if k == 0:
+                listnamefstr = linesplt
+                print('len(listnamefstr)')
+                print(len(listnamefstr))
+                #['peri', 'dura', 'dept', 'dcyctran', 'dcycinge', 'SN', 'SPN', 'OOTmag', 'sigamp']
+                for namefstr in listnamefstr:
+                    dictpopl['fstr'][namefstr] = []
+            else:
 
-        # TESS sectors
-        listtsec = range(1, 27)
-        numbtsec = len(listtsec)
-        indxtsec = np.arange(numbtsec)
+                #peri = float(linesplt[1])
+                #if peri < 0 or peri > 1000:
+                #    continue
+                #
+                #dept = float(linesplt[4])
+                #if dept <= 0:
+                #    continue
+                #
+                #dura = float(linesplt[3])
+                #if dura <= 0:
+                #    continue
+                #
+                #dcyctran = float(linesplt[5])
+                #if dcyctran <= 0:
+                #    continue
+                #
+                #boolcont = False
+                #for p in range(11):
+                #    if float(linesplt[p]) <= 0:
+                #        boolcont = True
+                #if boolcont:
+                #    continue
+                #    
+                #dcycinge = float(linesplt[6])
+                #if dcycinge <= 0:
+                #    continue
+                
+                numbfiel = len(linesplt)
+                print('numbfiel')
+                print(numbfiel)
+                if numbfiel == 31:
+                    ticifstr.append(float(linesplt[0]))
+                    for n in range(1, numbfiel):
+                        dictpopl['fstr'][listnamefstr[n]].append(float(linesplt[n]))
+                    
+                #dictpopl['fstr']['peri'].append(float(linesplt[1]))
+                #dictpopl['fstr']['dura'].append(12. * float(linesplt[3]))
+                #dictpopl['fstr']['dept'].append(float(linesplt[4]) * 1e3)
+                #dictpopl['fstr']['dcyctran'].append(float(linesplt[5]))
+                #dictpopl['fstr']['dcycinge'].append(float(linesplt[6]) * float(linesplt[5]))
+                #dictpopl['fstr']['SN'].append(float(linesplt[7]))
+                #dictpopl['fstr']['SPN'].append(float(linesplt[8]))
+                #dictpopl['fstr']['OOTmag'].append(float(linesplt[9]))
+                #dictpopl['fstr']['sigamp'].append(float(linesplt[10]))
+                
+            k += 1
+        ticifstr = np.array(ticifstr) 
+        for namefstr in listnamefstr:
+            dictpopl['fstr'][namefstr] = np.array(dictpopl['fstr'][namefstr]) 
+        #dictpopl['fstr'] = pd.read_csv(path, delimiter=' ').to_dict(orient='list')
+
+        #dictquer = miletos.xmat_tici(ticifstrastr)
         
         # read TIC IDs and dispositions from each sector
-        dictpopl['ticifull'] = [[] for o in indxtsec]
-        dictpopl['dispfull'] = [[] for o in indxtsec]
+        ## TESS sectors
+        #listtsec = range(1, 27)
+        listtsec = range(1, 2)
+        numbtsec = len(listtsec)
+        indxtsec = np.arange(numbtsec)
+        ticifull = [[] for o in indxtsec]
+        dispfull = [[] for o in indxtsec]
+        pathbase = pathfstr + 'combined/'
         for o in indxtsec:
             path = pathbase + 'sector-%d.tier2.csv' % listtsec[o]
             print('Reading from %s...' % path)
             dictquer = pd.read_csv(path).to_dict(orient='list')
-            dictpopl['ticifull'][o] = dictquer['TIC']
-            dictpopl['dispfull'][o] = dictquer['Final']
+            ticifull[o] = dictquer['TIC']
+            dispfull[o] = dictquer['Final']
+        ## merge across sectors
+        ticifullconc = np.concatenate(ticifull)
+        dispfullconc = np.concatenate(dispfull)
         
-        listname = dictpopl.keys()
-        numbname = len(listname)
-        indxname = np.arange(numbname)
-        for k in indxname:
-            dictpopl['ticifullconc'] = np.concatenate(dictpopl['ticifull'])
-            dictpopl['dispfullconc'] = np.concatenate(dictpopl['dispfull'])
-        
-        dictpopl['ticifulluniq'], numbtici = np.unique(dictpopl['ticifullconc'], return_counts=True)
-        dictpopl['ticifulluniq'], indxuniq, indxinve, numbtici = \
-                                                np.unique(dictpopl['ticifullconc'], return_index=True, return_inverse=True, return_counts=True)
-        dictpopl['ticifulluniq'] = dictpopl['ticifulluniq'].astype(str)
-        
-        indx = np.argsort(numbtici)[::-1]
-        for k in range(1000):
-            print('dictpopl[ticifulluniq][indx[k]]')
-            print(dictpopl['ticifulluniq'][indx[k]])
-            print('dictpopl[ticifullconc]')
-            summgene(dictpopl['ticifullconc'])
-            indx2 = np.where(dictpopl['ticifullconc'].astype(int) - int(dictpopl['ticifulluniq'][indx[k]]) == 0)[0]
-            print(dictpopl['ticifullconc'][indx2])
-            print(dictpopl['dispfullconc'][indx2])
-            print('')
-        
+        print('ticifullconc')
+        summgene(ticifullconc)
 
-        dictquer = miletos.xmat_tici(dictpopl['ticifulluniq'])
+        ticifstrastr, indxuniq, indxinve, numbtici = np.unique(ticifullconc, return_index=True, return_inverse=True, return_counts=True)
+        dispfstrastr = ticifullconc[indxuniq]
 
+        #ticifstrastr = ticifstrastr.astype(int)
+        
+        numbastr = len(ticifstrastr)
+        for namefstr in listnamefstr:
+            dictpopl['fstrastr'][namefstr] = np.empty(numbastr)
+        for k, tici in enumerate(ticifstrastr):
+            indx = np.where(ticifstr == tici)[0]
+            if indx.size > 0:
+                for namefstr in listnamefstr:
+                    dictpopl['fstrastr'][namefstr][k] = dictpopl['fstr'][namefstr][indx[0]]
+        
         figr, axis = plt.subplots(figsize=(4, 4))
         axis.hist(numbtici)
         axis.set_yscale('log')
@@ -176,29 +243,10 @@ def init( \
         plt.savefig(path)
         plt.close()
 
-
-        figr, axis = plt.subplots(figsize=(4, 4))
-        axis.hist(dictquer['tmag'])
-        axis.set_yscale('log')
-        axis.set_xlabel('Tmag')
-        axis.set_ylabel('N')
-        plt.tight_layout()
-        path = gdat.pathimag + 'histtmagtsec.%s' % (strgplotextn)
-        print('Writing to %s...' % path)
-        plt.savefig(path)
-        plt.close()
-
-
-
-        raise Exception('')
-
-    dictindxpopl = dict()
     # get the dictionaries holding the population properties
     if gdat.typepopl == 'hjuppcur':
-        listlablinpt = ['log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', '$A_g$']
-        listnameinpt = ['logg', 'ptmp', 'meta', 'tday', 'albe']
-        numbcompinpt = len(listnameinpt)
-        indxcompinpt = np.arange(numbcompinpt)
+        listlabl = ['log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', '$A_g$']
+        listname = ['logg', 'ptmp', 'meta', 'tday', 'albe']
         path = gdat.pathdata + 'catlpcurtess.csv'
         dictpopl['hjuppcur'] = pd.read_csv(path)
 
@@ -210,16 +258,20 @@ def init( \
         listradistar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
         listmassstar = tdpy.icdf_powr(np.random.rand(numbsamp), 0.1, 10., -2.)
         
-    for k in gdat.indxpoplsubb:
-        if listpoplsubb == 'exopexar':
+    listlablfeat = [[] for k in gdat.indxpopl]
+    listscalfeat = [[] for k in gdat.indxpopl]
+    listnamefeat = [[] for k in gdat.indxpopl]
+    indxfeat = [[] for k in gdat.indxpopl]
+    for k in gdat.indxpopl:
+        if listpopl == 'exopexar':
             dictpopl['exopexar'] = retr_dictexar()
             dictpopl['exopexar']['nois'] = ephesus.retr_noistess(dictpopl['exopexar']['vmagsyst'])
         
-        if listpoplsubb == 'fstrpcan':
+        if listpopl == 'fstrpcan':
             indxfullpcan = np.where(dispfull == 'PC')[0]
-            dictpopl['fstr']['ticitarg'] = ticifull[indxfullpcan]
+            dictpopl['tici'] = ticifull[indxfullpcan]
         
-        if listpoplsubb == 'exopmock':
+        if listpopl == 'exopmock':
         
             dictpopl['2minnomi']['probexop'] = pcat.icdf_gaustrun(np.random.rand(dictpopl['2minnomi']['radistar'].size), 0.02, 0.002, 0, np.inf)
             dictpopl['2minnomi']['boolexop'] = np.random.rand(dictpopl['2minnomi']['radistar'].size) < dictpopl['2minnomi']['probexop']
@@ -235,10 +287,10 @@ def init( \
             dictpopl['exopmock']['cosi'] = np.cos(np.pi / 180. * dictpopl['exopmock']['incl'])
             dictpopl['exopmock']['peri'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 0.3, 20., 2.)
             dictpopl['exopmock']['radiplan'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 1., 23., 2.)
-            if listpoplsubb == 'slen':
-                dictpopl['exopmock']['masscomp'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
-                dictpopl['exopmock']['masstotl'] = dictpopl['exopmock']['masscomp'] + dictpopl['exopmock']['massstar']
-            if listpoplsubb == 'exopmock':
+            if listpopl == 'slen':
+                dictpopl['exopmock']['massfeat'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
+                dictpopl['exopmock']['masstotl'] = dictpopl['exopmock']['massfeat'] + dictpopl['exopmock']['massstar']
+            if listpopl == 'exopmock':
                 dictpopl['exopmock']['massplan'] = tdpy.util.icdf_powr(np.random.rand(numbtarg), 5., 200., 2.)
                 dictpopl['exopmock']['masstotl'] = dictpopl['exopmock']['massplan'] / dictfact['msme'] + dictpopl['exopmock']['massstar']
             dictpopl['exopmock']['smax'] = ephesus.retr_smaxkepl(dictpopl['exopmock']['peri'], dictpopl['exopmock']['masstotl'])
@@ -252,10 +304,10 @@ def init( \
             dictpopl['exopmocktran']['duratran'] = ephesus.retr_duratran(dictpopl['exopmock']['peri'][indx], \
                                                                                dictpopl['exopmock']['rsma'][indx], \
                                                                                dictpopl['exopmock']['cosi'][indx])
-            if listpoplsubb == 'slen':
-                dictpopl['amplslen'] = retr_amplslen(dictpopl['peri'], dictpopl['radistar'], dictpopl['masscomp'], dictpopl['massstar'])
-                dictpopl['s2no'] = np.sqrt(dictpopl['duratran']) * dictpopl['amplslen'] / dictpopl['nois']
-            if listpoplsubb == 'exopmock':
+            if listpopl == 'slen':
+                dictpopl['amplslen'] = retr_amplslen(dictpopl['peri'], dictpopl['radistar'], dictpopl['massfeat'], dictpopl['massstar'])
+                dictpopl['s2nr'] = np.sqrt(dictpopl['duratran']) * dictpopl['amplslen'] / dictpopl['nois']
+            if listpopl == 'exopmock':
                 dictpopl['exopmocktran']['rrat'] = dictpopl['exopmocktran']['radiplan'] / dictpopl['exopmocktran']['radistar'] / dictfact['rsre']
                 dictpopl['exopmocktran']['dept'] = 1e6 * dictpopl['exopmocktran']['rrat']**2 # [ppm]
                 
@@ -280,154 +332,164 @@ def init( \
                 for name in dictpopl['exopmocktran'].keys():
                     dictpopl['exoptranmockdete'][name] = dictpopl['exopmocktran'][name][indx]
                 
-    gdat.listnamepoplfinl = list(dictpopl.keys())
-    gdat.numbpoplfinl = len(gdat.listnamepoplfinl)
-    gdat.indxpoplfinl = np.arange(gdat.numbpoplfinl)
+    gdat.listnamepopl = list(dictpopl.keys())
+    print('gdat.listnamepopl')
+    print(gdat.listnamepopl)
+
+    gdat.numbpopl = len(gdat.listnamepopl)
+    gdat.indxpopl = np.arange(gdat.numbpopl)
 
     # make sure fields with strings are not included
     #if gdat.typepopl != '2minnomi':
-    #    listnametotl = []
-    #    for name in listnametotltemp:
+    #    listnamefeat = []
+    #    for name in listnamefeattemp:
     #        if not isinstance(dictpopl[name][0], str):
-    #            listnametotl.append(name)
+    #            listnamefeat.append(name)
     #else:
-    #    listnametotl = listnametotltemp
-        
-    for k in gdat.indxpoplfinl:
-        
-        namepopl = gdat.listnamepoplfinl[k]
-        print(namepopl)
-        listnametotl = list(dictpopl[namepopl].keys())
+    #    listnamefeat = listnamefeattemp
+    
+    numbfeat = np.empty(gdat.numbpopl, dtype=int)
+    for k in gdat.indxpopl:
+        listnamefeat[k] = list(dictpopl[gdat.listnamepopl[k]].keys())
+        listlablfeat[k], listscalfeat[k] = tdpy.retr_listlablscalpara(listnamefeat[k])
+        numbfeat[k] = len(listnamefeat[k])
+        indxfeat[k] = np.arange(numbfeat[k])
+    print('listnamefeat')
+    print(listnamefeat)
+    
 
-        listlablpara, listscalpara = tdpy.retr_listlablscalpara(listnametotl)
+    for k in gdat.indxpopl:
         
-        numbnametotl = len(listnametotl)
-        indxnametotl = np.arange(numbnametotl)
-        
+        namepopl = gdat.listnamepopl[k]
+
         # check for finiteness
         #indx = np.where(np.isfinite(dictpopl['massstar']))[0]
-        #for name in listnametotltemp:
+        #for name in listnamefeattemp:
         #    dictpopl[name] = dictpopl[name][indx]
 
         #indx = np.where(np.isfinite(dictpopl['duratran']))[0]
-        #for name in listnametotltemp:
+        #for name in listnamefeattemp:
         #    dictpopl[name] = dictpopl[name][indx]
         
         # check number of targets for each feature
-        numbkeys = len(listnametotl)
+        numbkeys = len(listnamefeat[k])
         numbtarg = np.empty(numbkeys, dtype=int)
-        for n in range(numbkeys):
-            numbtarg[n] = dictpopl[namepopl][listnametotl[n]].size
-        if np.unique(numbtarg).size != 1:
-            print('listnametotl')
-            print(listnametotl)
-            print('numbtarg')
-            print(numbtarg)
+        for n in indxfeat[k]:
+            numbtarg[n] = dictpopl[namepopl][listnamefeat[k][n]].size
+        
+        if np.unique(numbtarg).size >  1:
+            print('listnamefeat')
+            print(listnamefeat)
+            for n in indxfeat[k]:
+                print('dictpopl[namepopl][listnamefeat[k][n]]')
+                summgene(dictpopl[namepopl][listnamefeat[k][n]])
             raise Exception('')
         numbtarg = numbtarg[0]
         
-        listsamp = np.empty((numbtarg, numbnametotl))
-        for n in indxnametotl:
-            listsamp[:, n] = dictpopl[namepopl][listnametotl[n]]
+        listsamp = np.empty((numbtarg, numbfeat[k]))
+        for n in indxfeat[k]:
+            listsamp[:, n] = dictpopl[namepopl][listnamefeat[k][n]]
             
-            print(listnametotl[n])
+            print(listnamefeat[k][n])
             summgene(listsamp[:, n], boolfull=True)
             print('')
 
         # visualize the population
         print('Visualizing the population...')
         boolscat = False
-        tdpy.mcmc.plot_grid(gdat.pathimag, gdat.listnamepoplfinl[k], listsamp, listlablpara, boolscat=boolscat, \
-                                                        listscalpara=listscalpara, typefileplot=typefileplot)#, join=True)
+        tdpy.mcmc.plot_grid(gdat.pathimag, namepopl, listsamp, listlablfeat[k], boolscat=boolscat, \
+                                                        listscalpara=listscalfeat[k], typefileplot=typefileplot)#, join=True)
         
         print('')
-
-    for k in gdat.indxpoplfinl:
+    
+    # derived features
+    # effective temperature of the star
+    #tmptstar = arry[:, 0]
+    #tmptstarstdv = arry[:, 1]
+    ## metallicity of the star
+    #metastar = arry[:, 2]
+    #metastarstdv = arry[:, 3]
+    ## radius of the star
+    #radistar = arry[:, 4]
+    #radistarstdv = arry[:, 5]
+    ## mass of the planet
+    #massplan = arry[:, 6]
+    #massplanstdv = arry[:, 7]
+    ## semi-major axis divided by the radius of the star
+    #rsta = arry[:, 8]
+    #rstastdv = arry[:, 9]
+    ## radius of the planet divided by the radius of the star
+    #rrat = arry[:, 10]
+    #rratstdv = arry[:, 11]
+    ## dayside temperature of the planet
+    #tday = arry[:, 12]
+    #tdaystdv = np.maximum(arry[:, 13], arry[:, 14])
+    ## geometric albedo 
+    #albe = arry[:, 15]
+    #albestdv = np.maximum(arry[:, 16], arry[:, 17])
         
-        # search for correlations
+    ## semi-major axis
+    #smax = radistar / rsta
+    #smaxstdv = np.sqrt((radistarstdv / radistar)**2 + (rstastdv / rsta)**2)
+    ## radius of the planet
+    #radiplan = rrat * radistar
+    #radiplanstdv = np.sqrt((rratstdv / rrat)**2 + (radistarstdv / radistar)**2)
+    ## plenatery surface gravity
+    #grav = 26.18 * massplan / radiplan**2
+    #stdvgrav = grav * np.sqrt((massplanstdv / massplan) **2 + (2. * radiplanstdv / radiplan)**2)
+    ## log of the plenatery surface gravity
+    #logg = np.log10(grav)
+    #loggstdv = 0.434 * stdvgrav / grav
+    ## equilibrium temperature of the planet
+    #tmpteqiu = tmptstar * np.sqrt(1. / 2. / smax)
+    #tmpteqiustdv = tmpteqiu * np.sqrt((tmptstarstdv / tmptstar)**2 + (0.5 * smaxstdv / smax)**2) / np.sqrt(2.)
+    #
+    ## load variables into the array
+    #arrytemp = np.empty((numbplan, numbfeat))
+    #arrystdvtemp = np.empty((numbplan, numbfeat))
+    ## logg 
+    #arrytemp[:, 0] = logg
+    #arrystdvtemp[:, 0] = loggstdv
+    ## plenatery equilibrium temperature
+    #arrytemp[:, 1] = tmpteqiu
+    #arrystdvtemp[:, 1] = tmpteqiustdv
+    ## stellar metallicity
+    #arrytemp[:, 2] = metastar
+    #arrystdvtemp[:, 2] = metastarstdv
+    ## dayside temperature
+    #arrytemp[:, 3] = tday
+    #arrystdvtemp[:, 3] = tdaystdv
+    ## dayside albedo
+    #arrytemp[:, 4] = albe
+    #arrystdvtemp[:, 4] = albestdv
+        
+    # search for correlations
+    for k in gdat.indxpopl:
+        
+        continue
+
         print('Searching for correlations...')    
 
-        # effective temperature of the star
-        #tmptstar = arry[:, 0]
-        #tmptstarstdv = arry[:, 1]
-        ## metallicity of the star
-        #metastar = arry[:, 2]
-        #metastarstdv = arry[:, 3]
-        ## radius of the star
-        #radistar = arry[:, 4]
-        #radistarstdv = arry[:, 5]
-        ## mass of the planet
-        #massplan = arry[:, 6]
-        #massplanstdv = arry[:, 7]
-        ## semi-major axis divided by the radius of the star
-        #rsta = arry[:, 8]
-        #rstastdv = arry[:, 9]
-        ## radius of the planet divided by the radius of the star
-        #rrat = arry[:, 10]
-        #rratstdv = arry[:, 11]
-        ## dayside temperature of the planet
-        #tday = arry[:, 12]
-        #tdaystdv = np.maximum(arry[:, 13], arry[:, 14])
-        ## geometric albedo 
-        #albe = arry[:, 15]
-        #albestdv = np.maximum(arry[:, 16], arry[:, 17])
-            
-        # derived quantities
-        # semi-major axis
-        smax = radistar / rsta
-        smaxstdv = np.sqrt((radistarstdv / radistar)**2 + (rstastdv / rsta)**2)
-        # radius of the planet
-        radiplan = rrat * radistar
-        radiplanstdv = np.sqrt((rratstdv / rrat)**2 + (radistarstdv / radistar)**2)
-        # plenatery surface gravity
-        grav = 26.18 * massplan / radiplan**2
-        stdvgrav = grav * np.sqrt((massplanstdv / massplan) **2 + (2. * radiplanstdv / radiplan)**2)
-        # log of the plenatery surface gravity
-        logg = np.log10(grav)
-        loggstdv = 0.434 * stdvgrav / grav
-        # equilibrium temperature of the planet
-        tmpteqiu = tmptstar * np.sqrt(1. / 2. / smax)
-        tmpteqiustdv = tmpteqiu * np.sqrt((tmptstarstdv / tmptstar)**2 + (0.5 * smaxstdv / smax)**2) / np.sqrt(2.)
-        
-        # load variables into the array
-        arryinpttemp = np.empty((numbplan, numbcompinpt))
-        arryinptstdvtemp = np.empty((numbplan, numbcompinpt))
-        # logg 
-        arryinpttemp[:, 0] = logg
-        arryinptstdvtemp[:, 0] = loggstdv
-        # plenatery equilibrium temperature
-        arryinpttemp[:, 1] = tmpteqiu
-        arryinptstdvtemp[:, 1] = tmpteqiustdv
-        # stellar metallicity
-        arryinpttemp[:, 2] = metastar
-        arryinptstdvtemp[:, 2] = metastarstdv
-        # dayside temperature
-        arryinpttemp[:, 3] = tday
-        arryinptstdvtemp[:, 3] = tdaystdv
-        # dayside albedo
-        arryinpttemp[:, 4] = albe
-        arryinptstdvtemp[:, 4] = albestdv
-        
         listlablpara = [[r'$\alpha$', ''], [r'$\rho$', '']]
         listscalpara = ['self', 'self']
         listmeangauspara = None
         liststdvgauspara = None
         listminmpara = np.array([0, -1e1])
         listmaxmpara = np.array([np.pi, 1e1])
-        numbpara = len(listscalpara)
         
+        numbpara = len(listlablpara)
         numbwalk = max(20, 2 * numbpara)
         numbsamp = numbwalk * (numbsampwalk - numbsampburnwalkseco)
         indxsamp = np.arange(numbsamp)
         
-        listcoef = np.zeros((numbcompinpt, numbcompinpt))
+        listcoef = np.zeros((numbfeat[k], numbfeat[k]))
         
-        for k in indxcompinpt: 
-            gdat.tempfrst = arryinpttemp[:, k]
-            gdat.tempfrststdv = arryinptstdvtemp[:, k]
-            for u in indxcompinpt: 
-                gdat.tempseco = arryinpttemp[:, u]
-                gdat.tempsecostdv = arryinptstdvtemp[:, u]
+        for k in indxfeat[k]: 
+            gdat.tempfrst = arrytemp[:, k]
+            gdat.tempfrststdv = arrystdvtemp[:, k]
+            for u in indxfeat[k]: 
+                gdat.tempseco = arrytemp[:, u]
+                gdat.tempsecostdv = arrystdvtemp[:, u]
                 
                 minmxpos = np.amin(gdat.tempfrst) / 1.1
                 maxmxpos = np.amax(gdat.tempfrst) * 1.1
@@ -435,16 +497,16 @@ def init( \
                 maxmypos = np.amax(gdat.tempseco) * 1.1
                 
                 if not ( \
-                        listnameinpt[k] == 'ptmp' and listnameinpt[u] == 'logg' or \
-                        listnameinpt[k] == 'tday' and listnameinpt[u] == 'ptmp' or \
-                        listnameinpt[k] == 'logg' and listnameinpt[u] == 'albe' or \
-                        listnameinpt[k] == 'ptmp' and listnameinpt[u] == 'albe' or \
-                        listnameinpt[k] == 'tday' and listnameinpt[u] == 'albe' or \
-                        listnameinpt[k] == 'tday' and listnameinpt[u] == 'logg' \
+                        listnamefeat[k] == 'ptmp' and listnamefeat[u] == 'logg' or \
+                        listnamefeat[k] == 'tday' and listnamefeat[u] == 'ptmp' or \
+                        listnamefeat[k] == 'logg' and listnamefeat[u] == 'albe' or \
+                        listnamefeat[k] == 'ptmp' and listnamefeat[u] == 'albe' or \
+                        listnamefeat[k] == 'tday' and listnamefeat[u] == 'albe' or \
+                        listnamefeat[k] == 'tday' and listnamefeat[u] == 'logg' \
                        ):
                     continue
                 
-                print('%s, %s:' % (listlablinpt[k], listlablinpt[u]))
+                print('%s, %s:' % (listlabl[k], listlabl[u]))
                 
                 # calculate PCC
                 coef, pval = scipy.stats.pearsonr(gdat.tempfrst, gdat.tempseco)
@@ -452,8 +514,8 @@ def init( \
                 
                 # sample from a linear model
                 numbdata = 2 * numbplan
-                strgextn = '%d_' % b + listnameinpt[k]
-                parapost = tdpy.mcmc.samp(gdat, pathimag, numbsampwalk, numbsampburnwalk, numbsampburnwalkseco, retr_llik, \
+                strgextn = '%d_' % b + listnamepara[k]
+                featpost = tdpy.mcmc.samp(gdat, pathimag, numbsampwalk, numbsampburnwalk, numbsampburnwalkseco, retr_llik, \
                                                 listlablpara, listscalpara, listminmpara, listmaxmpara, listmeangauspara, liststdvgauspara, \
                                                     numbdata, strgextn=strgextn, strgplotextn=strgplotextn, verbtype=0)
                 
@@ -477,29 +539,29 @@ def init( \
                 axis.set_xlim([minmxpos, maxmxpos])
                 axis.set_ylim([minmypos, maxmypos])
                 
-                postslop = -1. / np.tan(parapost[:, 0])
+                postslop = -1. / np.tan(featpost[:, 0])
                 medislop = np.median(postslop)
                 lowrslop = np.median(postslop) - np.percentile(postslop, 16)
                 upprslop = np.percentile(postslop, 84) - np.median(postslop)
                 titl = 'PCC = %.3g, Slope: %.3g $\substack{+%.2g \\\\ -%.2g}$' % (listcoef[u, k], medislop, upprslop, lowrslop)
-                axis.set_xlabel(listlablinpt[k])
-                axis.set_ylabel(listlablinpt[u])
+                axis.set_xlabel(listlabl[k])
+                axis.set_ylabel(listlabl[u])
         
                 plt.tight_layout()
-                path = pathimag + 'scat_%s_%s_%d.%s' % (listnameinpt[k], listnameinpt[u], b, strgplotextn)
+                path = pathimag + 'scat_%s_%s_%d.%s' % (listnamefeat[k], listnamefeat[u], b, strgplotextn)
                 print('Writing to %s...' % path)
                 plt.savefig(path)
                 plt.close()
 
-        # search for clusters
+    # search for clusters
 
-        ## interpolate distribution
-        interp2d(grid)
+    ## interpolate distribution
+    np.interp2d(grid)
 
-        ## selection effects
-        miletos.retr_precreca(grid)
-        
-        ## occurence rate
-        occu = dens / reca * prec
+    ## selection effects
+    miletos.retr_precreca(grid)
+    
+    ## occurence rate
+    occu = dens / reca * prec
 
 

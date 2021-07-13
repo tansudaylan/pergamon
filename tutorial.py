@@ -25,4 +25,6 @@ def cnfg_flarspot():
                  )
         
 
+# exoplanet metallicity vs mass
+
 globals().get(sys.argv[1])()
