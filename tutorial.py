@@ -3,11 +3,20 @@ import sys
 import pergamon
 
 
+def cnfg_tessnomi2minbcanmocktoyy():
+    
+    # 
+    pergamon.init( \
+                 typeanly='tessnomi2minbcanmocktoyy', \
+                 )
+        
+
 def cnfg_fstr():
     
+    # Kepler dichotomy -- stats of multis
     pergamon.init( \
-                 typepopl='fstr', \
-                 listtypepoplsubb=['fstrpcan'], \
+                 typeanly='pcanmockfstrnomi'
+                 #typeanly='tessnomi2minbcanmocktoyy', \
                  )
         
 
@@ -20,8 +29,7 @@ def cnfg_flarspot():
     # Spot model:
 
     pergamon.init( \
-                 #listtypepopl=['ffimm135nomi', 'fstr'], \
-                 listtypepopl=['2minnomi', '20sc'], \
+                 typeanly='flarmock20scnomi'
                  )
         
 
