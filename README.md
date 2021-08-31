@@ -1,4 +1,4 @@
 # pergamon
 
 ## Introduction
-Pipeline to model population demographics
+pergamon is a Pipeline to analyze, visualize, and model populations
