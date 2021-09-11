@@ -11,18 +11,43 @@ def cnfg_tessnomi2minbholmock():
                  )
         
 
-def cnfg_fstrtoii():
+def cnfg_micc():
+    '''
+    Merger-induced cora collapse supernovae
+    '''
     
     pergamon.init( \
-                 typeanls='exof'
+                 typeanls='micc'
+                 )
+    
+
+def cnfg_multorbt():
+    '''
+    Kepler dichotomy -- stats of multis
+    '''
+    
+    pergamon.init( \
+                 typeanls='toii'
+                 )
+    
+
+def cnfg_fstr():
+    '''
+    FaintStars vetting
+    '''
+    
+    pergamon.init( \
+                 typeanls='tesspcanfstr'
                  )
         
 
-def cnfg_fstr():
+def cnfg_toiifstr():
+    '''
+    Contribution of FaintStars to the TOI catalog
+    '''
     
-    # Kepler dichotomy -- stats of multis
     pergamon.init( \
-                 typeanls='tessm135nomipcanfstr'
+                 typeanls='toiifstr'
                  )
         
 

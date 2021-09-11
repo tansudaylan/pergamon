@@ -122,16 +122,71 @@ def init( \
         numbsamp = 1
         indxsamp = np.arange(numbsamp)
     
-    if gdat.typeanls == 'exof':
+    if gdat.typeanls == 'micc':
+        # merger-induced core collapse supernovae
+        ## X-ray (2-10 keV) luminosity of J121001+495647 (VT 1210+4956)
+        lumidete = 4e46 # [erg/s]
+        distdete = 100. # [Mpc]
+        # Mpc / AU
+        factmpcsastu = 2.1e11
+        
+        # TESS magnitude
+        magttess = -26.7 - 2.5 * np.log10(lumidete / (100. * factmpcsastu)**2 / 4e34)
+        print('magttess')
+        print(magttess)
+
+    if gdat.typeanls == 'toiifstr':
+        # properties of TOIs
+        ## all
         dictpopl['toii'] = miletos.retr_dictexof()
+        
+        # replace BJD with TESS-truncated BJD (TBJD)
+        dictpopl['toii']['epoctess'] = dictpopl['toii']['epoc'] - 2457000
+        
+        # delete unnecessary fields
+        listkeys = list(dictpopl['toii'].keys())
+        for name in listkeys:
+            if name.startswith('stdv'):
+                del dictpopl['toii'][name]
+            if name in ['tici', 'epoc', 'hmagsyst', 'kmagsyst', 'jmagsyst']:
+                del dictpopl['toii'][name]
+        
+        # total number of TOIs
+        numbtoii = len(dictpopl['toii']['strgcomm'])
+        indxtoii = np.arange(numbtoii)
+
+        ## FaintStars
         dictpopl['toiifstr'] = dict()
         indxfstr = []
-        for n in range(len(dictpopl['toii']['strgcomm'])):
-            if isinstance(dictpopl['toii']['strgcomm'][n], str) and 'FaintStar' in dictpopl['toii']['strgcomm'][n]:
+        for n in indxtoii:
+            if isinstance(dictpopl['toii']['strgcomm'][n], str) and 'faint-star' in dictpopl['toii']['strgcomm'][n]:
                 indxfstr.append(n)
-        indxfstr = np.array(indxfstr)
+        indxfstr = np.array(indxfstr, dtype=int)
         for name in dictpopl['toii'].keys():
-            dictpopl['toiifstr'][name] = dictpopl['toii'][name]
+            dictpopl['toiifstr'][name] = dictpopl['toii'][name][indxfstr]
+        
+        ## PC
+        dictpopl['toiipcan'] = dict()
+        indxpcan = []
+        for n in indxtoii:
+            if not dictpopl['toii']['boolfpos'][n]:
+                indxpcan.append(n)
+        indxpcan = np.array(indxpcan, dtype=int)
+        for name in dictpopl['toii'].keys():
+            dictpopl['toiipcan'][name] = dictpopl['toii'][name][indxpcan]
+        
+        ## FP
+        dictpopl['toiifpos'] = dict()
+        indxfpos = np.setdiff1d(indxtoii, indxpcan)
+        for name in dictpopl['toii'].keys():
+            dictpopl['toiifpos'][name] = dictpopl['toii'][name][indxfpos]
+        
+        print('indxpcan')
+        summgene(indxpcan)
+        print('indxfpos')
+        summgene(indxfpos)
+        print('indxfstr')
+        summgene(indxfstr)
 
     # conversion factors
     gdat.dictfact = ephesus.retr_factconv()
@@ -147,10 +202,7 @@ def init( \
     gdat.figrsizeydob = [8., 4.]
     gdat.figrsizeydobskin = [8., 2.5]
         
-        # base path for FaintStars
-         
-        # base path for FaintStars
-    if gdat.typeanls == 'tessm135nomipcanfstr':
+    if gdat.typeanls == 'tesspcanfstr':
         
         # base path for FaintStars
         pathfstr = '/Users/tdaylan/Documents/work/data/external/FaintStars/'
@@ -620,15 +672,20 @@ def init( \
                 print('dictpopl[namepopl][listnamefeat[k][n]]')
                 summgene(dictpopl[namepopl][listnamefeat[k][n]])
             raise Exception('')
-        numbtarg = numbtarg[0]
         
+
+    # visualize the population
+    for k in gdat.indxpopl:
+        if k == 1:
+            continue
+
         listlablfeattemp = list(listlablfeat[k])
         listnamefeattemp = list(listnamefeat[k])
         listscalfeattemp = list(listscalfeat[k])
         listlablfeat = []
         listnamefeat = []
         listscalfeat = []
-        listsamp = []#np.empty((numbtarg, numbfeat[k]))
+        listsamp = []
         
         for n in gdat.indxfeat[k]:
             if not listnamefeattemp[n] in ['strgcomm', 'rascstar', 'declstar', 'namesyst', 'nameplan', 'facidisc', 'tic']:
@@ -644,12 +701,17 @@ def init( \
         print('listscalfeat')
         print(listscalfeat)
         
-        # visualize the population
         print('Visualizing the population...')
         boolscat = False
-        tdpy.mcmc.plot_grid(gdat.pathimag, namepopl, listsamp, listlablfeat, boolscat=boolscat, boolplotpair=True, boolplottria=False, numbbinsplot=40, \
+        tdpy.mcmc.plot_grid(gdat.pathimag, gdat.listnamepopl[k], listsamp, listlablfeat, boolscat=boolscat, boolplotpair=True, boolplottria=False, numbbinsplot=40, \
                                                         listscalpara=listscalfeat, typefileplot=typefileplot, liststrgvarb=listnamefeat)
     
+    
+    # print out population summary
+    if gdat.typeanls == 'toiifstr':
+        indxpoplcomp = 1
+    if gdat.typeanls == 'tesspcanfstr':
+        indxpoplcomp = 3
     errr = np.empty((4, gdat.numbpopl))
     sigm = np.empty(gdat.numbpopl - 1)
     for n in gdat.indxfeat[0]:
@@ -658,12 +720,15 @@ def init( \
         print(listnamefeat[0][n])
         for k in gdat.indxpopl:
             strgvarb = gdat.listnamepopl[k][4:]
-            if k == 3:
+            if k == indxpoplcomp:
                 varbcomp = None
             else:
-                varbcomp = dictpopl[gdat.listnamepopl[3]][listnamefeat[3][n]]
+                varbcomp = dictpopl[gdat.listnamepopl[indxpoplcomp]][listnamefeat[indxpoplcomp][n]]
             summgene(dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]], boolslin=True, strgvarb=strgvarb, varbcomp=varbcomp)
         print('')
+    
+    raise Exception('')
+
     # derived features
     # effective temperature of the star
     #tmptstar = arry[:, 0]
