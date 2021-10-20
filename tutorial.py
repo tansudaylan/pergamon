@@ -11,6 +11,36 @@ def cnfg_tessnomi2minbholmock():
                  )
         
 
+def cnfg_featsupntess():
+    '''
+    features of supernovae in the TESS FOV
+    '''
+    
+    pergamon.init( \
+                  typeanls='featsupntess'
+                 )
+    
+
+def cnfg_featexartran():
+    '''
+    period and duty cycle relationship of confirmed exoplanets on NASA Exoplanet Archive
+    '''
+    
+    pergamon.init( \
+                 typeanls='featexartran'
+                 )
+    
+
+def cnfg_featexarmassradi():
+    '''
+    mass and radii relationship of confirmed exoplanets on NASA Exoplanet Archive
+    '''
+    
+    pergamon.init( \
+                 typeanls='featexarmassradi'
+                 )
+    
+
 def cnfg_micc():
     '''
     Merger-induced cora collapse supernovae
@@ -31,23 +61,68 @@ def cnfg_multorbt():
                  )
     
 
-def cnfg_fstr():
+def cnfg_feattceefstr():
     '''
-    FaintStars vetting
+    QLP TCE feature space for
+        all TCEs 
+        all TOIs
+        FaintStar TOIs
     '''
     
     pergamon.init( \
-                 typeanls='tesspcanfstr'
+                 typeanls='feattceefstr'
                  )
         
 
-def cnfg_toiifstr():
+def cnfg_feattoiiatmo():
     '''
-    Contribution of FaintStars to the TOI catalog
+    TOI TSMs binned in equatorial latitude
     '''
     
     pergamon.init( \
-                 typeanls='toiifstr'
+                 typeanls='feattoiiatmo'
+                 )
+        
+
+def cnfg_featexaratmo():
+    '''
+    Collect relevant features for all confirmed exoplanets on the NASA Exoplanet Archive suitable for atmospheric characterization
+    '''
+    
+    pergamon.init( \
+                 typeanls='featexaratmo'
+                 )
+        
+
+def cnfg_featexarweakmass():
+    '''
+    Collect relevant features for all confirmed exoplanets on the NASA Exoplanet Archive suitable for atmospheric characterization with weak mass measurements
+    '''
+    
+    pergamon.init( \
+                 typeanls='featexarweakmass'
+                 )
+        
+
+def cnfg_featexaratmogeor():
+    '''
+    TSMs and ESMs for hand-picked confirmed exoplanets on the NASA Exoplanet Archive
+    '''
+    
+    pergamon.init( \
+                 typeanls='featexaratmogeor'
+                 )
+        
+
+def cnfg_feattoiifstr():
+    '''
+    TOI feature space for
+        all TOIs
+        FaintStars TOIs
+    '''
+    
+    pergamon.init( \
+                 typeanls='feattoiifstr'
                  )
         
 
