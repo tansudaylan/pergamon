@@ -67,6 +67,9 @@ def init( \
         # list of labels for the populations
         listlablpoplcomm=None, \
         
+        # dictionary of colors for populations
+        dictcolrpopl=None, \
+
         # Boolean flag to sort the populations according to their sizes
         boolsortpoplsize=True, \
 
@@ -309,7 +312,7 @@ def init( \
                                  ['All stars', 'Stars w/ one or more planets', 'Stars w/ one or more transiting planets', 'Stars w/ one or more detected planets'], \
                                 ]
 
-    elif gdat.typeanls == 'feattoiifstr':
+    elif gdat.typeanls == 'feattoiifstr' or gdat.typeanls == 'feattceefstr':
         gdat.listlablpoplcomm = [['All', 'FaintStar']]
     
     elif gdat.typeanls == 'feattoiimult' or gdat.typeanls == 'feathosttoiimult':
@@ -794,9 +797,14 @@ def init( \
             numbtarg[n] = gdat.dictpopl[namepopl][listnamefeat[k][n]].size
             if numbtarg[n] == 0:
                 print('Feature %s of population %s is empty!' % (listnamefeat[k][n], gdat.listnamepopl[k]))
-        if np.unique(numbtarg).size >  1:
-            print('listnamefeat')
-            print(listnamefeat)
+        if np.unique(numbtarg).size > 1:
+            print('Number of targets is not the same for every feature.')
+            print('k')
+            print(k)
+            print('namepopl')
+            print(namepopl)
+            print('listnamefeat[k]')
+            print(listnamefeat[k])
             for n in gdat.indxfeat[k]:
                 print('gdat.dictpopl[namepopl][listnamefeat[k][n]]')
                 summgene(gdat.dictpopl[namepopl][listnamefeat[k][n]])
@@ -1065,10 +1073,10 @@ def init( \
             for uu in range(numbpoplcomm):
                 numbsamppopl[uu] = listsampcomm[uu].shape[0]
             
-            # incides of populations that sort them from largest to smallest (the plotting order)
-            indxpoplsort = np.argsort(numbsamppopl)[::-1]
-            
             if gdat.boolsortpoplsize:
+                # incides of populations that sort them from largest to smallest (the plotting order)
+                indxpoplsort = np.argsort(numbsamppopl)[::-1]
+            
                 # sort populations according to sample size starting from largest 
                 print('Sorting the population order according to their sizes...')
                 listsampcommtemp = [[] for u in indxpoplcomm]
@@ -1090,8 +1098,17 @@ def init( \
             for uu, u in enumerate(indxpoplcomm):
                 strgplot += listnamepoplcomm[uu]
             
+            # determine the list of colors for populations
+            if dictcolrpopl is not None:
+                listcolrpopl = []
+                for uu, u in enumerate(indxpoplcomm):
+                    strgplot += listnamepoplcomm[uu]
+                    listcolrpopl.append(dictcolrpopl[listnamepoplcomm[uu]])
+            else:
+                listcolrpopl = None
+            
             tdpy.plot_grid(gdat.pathimag, strgplot, listsampcomm, listlablfeatcomm, boolplotindi=True, boolplotpair=True, boolplottria=False, typeplottdim=typeplottdim, \
-                                                            listscalpara=listscalfeatcomm, typefileplot=typefileplot, listnamepara=listnamefeatcomm, listlablpopl=listlablpoplcomm)
+                                     listcolrpopl=listcolrpopl, listscalpara=listscalfeatcomm, typefileplot=typefileplot, listnamepara=listnamefeatcomm, listlablpopl=listlablpoplcomm)
             
         
         if gdat.typeanls.startswith('featcosc') or gdat.typeanls[12:].startswith('exopmock'):

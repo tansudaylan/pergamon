@@ -226,7 +226,9 @@ def cnfg_feattoiifstr():
     '''
     TOI feature space for
         all TOIs
-        FaintStars TOIs
+        FaintStars TOIs (PM)
+        FaintStars TOIs (EM1)
+        FaintStars TOIs (EM1Ecl)
     '''
     
     pergamon.init( \
