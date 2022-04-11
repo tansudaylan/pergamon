@@ -3,7 +3,7 @@ import sys
 import pergamon
 
 
-def cnfg_featpsys_s2nr_lsstwfdsfull_lsstwfds():
+def cnfg_psys_s2nr_lsstwfdsfull_lsstwfds():
 
     '''
     Explore features of planetary systems (underlying physical features as well as those that can be measured by the 10-year LSST WFD survey) based on signal-to-noise calculation
@@ -14,7 +14,7 @@ def cnfg_featpsys_s2nr_lsstwfdsfull_lsstwfds():
                  )
         
 
-def cnfg_featpsys_s2nr_tessffim_tessexm2():
+def cnfg_psys_s2nr_tessffim_tessexm2():
     '''
     Explore features of planetary systems (underlying physical features as well as those that can be measured by 200-sec cadence TESS FFI data in the second extended mission) 
     based on signal-to-noise calculation
@@ -25,7 +25,7 @@ def cnfg_featpsys_s2nr_tessffim_tessexm2():
                  )
         
 
-def cnfg_featpsys_s2nr_tess2min_tessnomi2min():
+def cnfg_psys_s2nr_tess2min_tessnomi2min():
     '''
     Explore features of planetary systems (underlying physical features as well as those that can be measured by 2-min cadence TESS data in the nominal mission)
     based on signal-to-noise calculation
@@ -36,7 +36,7 @@ def cnfg_featpsys_s2nr_tess2min_tessnomi2min():
                  )
         
 
-def cnfg_featcosc_s2nr_lsst_wfds_lsstdeepfull_lsstdeep():
+def cnfg_cosc_s2nr_lsst_wfds_lsstdeepfull_lsstdeep():
 
     '''
     Explore features of COSCs (underlying physical features as well as those that can be measured by the 10-year LSST WFD survey) based on signal-to-noise calculation
@@ -47,7 +47,7 @@ def cnfg_featcosc_s2nr_lsst_wfds_lsstdeepfull_lsstdeep():
                  )
         
 
-def cnfg_featcosc_s2nr_tessffim_tessexm2():
+def cnfg_cosc_s2nr_tessffim_tessexm2():
     '''
     Explore features of COSCs (underlying physical features as well as those that can be measured by 2-min cadence TESS data in the nominal mission) based on signal-to-noise calculation
     '''
@@ -57,7 +57,7 @@ def cnfg_featcosc_s2nr_tessffim_tessexm2():
                  )
         
 
-def cnfg_featcosc_s2nr_tess2min_tessnomi2min():
+def cnfg_cosc_s2nr_tess2min_tessnomi2min():
     '''
     Explore features of COSCs (underlying physical features as well as those that can be measured by 2-min cadence TESS data in the nominal mission) based on signal-to-noise calculation
     '''
@@ -67,7 +67,7 @@ def cnfg_featcosc_s2nr_tess2min_tessnomi2min():
                  )
         
 
-def cnfg_featsupntess():
+def cnfg_supntess():
     '''
     features of supernovae in the TESS FOV
     '''
@@ -77,43 +77,23 @@ def cnfg_featsupntess():
                  )
     
 
-def cnfg_feattoii():
+def cnfg_toii():
     '''
     all features in the TOI Catalog with all subpopulations
     '''
     
     pergamon.init( \
-                 typeanls='feattoii'
+                 typeanls='toii'
                  )
     
 
-def cnfg_featexar():
+def cnfg_exar():
     '''
     all features in the NASA Exoplanet Archive with all subpopulations
     '''
     
     pergamon.init( \
-                 typeanls='featexar'
-                 )
-    
-
-def cnfg_featexartran():
-    '''
-    period and duty cycle relationship of confirmed exoplanets on NASA Exoplanet Archive
-    '''
-    
-    pergamon.init( \
-                 typeanls='featexartran'
-                 )
-    
-
-def cnfg_featexarmassradi():
-    '''
-    mass and radii relationship of confirmed exoplanets on NASA Exoplanet Archive
-    '''
-    
-    pergamon.init( \
-                 typeanls='featexarmassradi'
+                 typeanls='exar'
                  )
     
 
@@ -137,40 +117,44 @@ def cnfg_multorbt():
                  )
     
 
-def cnfg_feattceefstr():
+def cnfg_qulpastrfilt_qulp():
+    '''
+    Population of QLP TCEs that pass Astronet triage and subpopulations of
+        TOIs
+        FaintStar TOIs PM
+        FaintStar TOIs EM1
+    '''
+    
+    pergamon.init( \
+                 'qulpastrfilt', 'featqulp'
+                 )
+        
+
+def cnfg_tceefstr():
     '''
     QLP TCE feature space for
         all TCEs 
         all TOIs
-        FaintStar TOIs
+        FaintStar TOIs PM
+        FaintStar TOIs EM1
     '''
     
     pergamon.init( \
-                 typeanls='feattceefstr'
+                 typeanls='tceefstr'
                  )
         
 
-def cnfg_feattoiiatmo():
+def cnfg_toiiatmo():
     '''
     TOI TSMs binned in equatorial latitude
     '''
     
     pergamon.init( \
-                 typeanls='feattoiiatmo'
+                 typeanls='toiiatmo'
                  )
         
 
-def cnfg_featexaratmo():
-    '''
-    Collect relevant features for all confirmed exoplanets on the NASA Exoplanet Archive suitable for atmospheric characterization
-    '''
-    
-    pergamon.init( \
-                 typeanls='featexaratmo'
-                 )
-        
-
-def cnfg_featobsvjwstexop():
+def cnfg_obsvjwstexop():
     '''
     features of approved JWST exoplanet programs and their modes
     '''
@@ -180,49 +164,7 @@ def cnfg_featobsvjwstexop():
                  )
         
 
-def cnfg_featmult():
-    '''
-    Collect number of transiting planets per system for all hosts of TOIs and TESS-confirmed exoplanets on NASA Exoplanet Archive
-    '''
-    
-    #pergamon.init( \
-    #             typeanls='feattoiimult'
-    #             )
-
-    pergamon.init( \
-                 typeanls='featexarmult'
-                 )
-        
-    pergamon.init( \
-                 typeanls='feathosttoiimult'
-                 )
-
-    pergamon.init( \
-                 typeanls='feathostexarmult'
-                 )
-        
-
-def cnfg_featexarweakmass():
-    '''
-    Collect relevant features for all confirmed exoplanets on the NASA Exoplanet Archive suitable for atmospheric characterization with weak mass measurements
-    '''
-    
-    pergamon.init( \
-                 typeanls='featexarweakmass'
-                 )
-        
-
-def cnfg_featexaratmogeor():
-    '''
-    TSMs and ESMs for hand-picked confirmed exoplanets on the NASA Exoplanet Archive
-    '''
-    
-    pergamon.init( \
-                 typeanls='featexaratmogeor'
-                 )
-        
-
-def cnfg_feattoiifstr():
+def cnfg_toiifstr():
     '''
     TOI feature space for
         all TOIs
@@ -232,7 +174,7 @@ def cnfg_feattoiifstr():
     '''
     
     pergamon.init( \
-                 typeanls='feattoiifstr'
+                 'toiifstr'
                  )
         
 

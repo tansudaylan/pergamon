@@ -64,11 +64,8 @@ def init( \
         # Boolean flag to search for correlations
         boolsrchcorr=False, \
         
-        # list of labels for the populations
-        listlablpoplcomm=None, \
-        
-        # dictionary of colors for populations
-        dictcolrpopl=None, \
+        # list of dictionaries of labels and colors for compared populations (one for each comparison)
+        listdictlablcolrpopl=None, \
 
         # Boolean flag to sort the populations according to their sizes
         boolsortpoplsize=True, \
@@ -107,6 +104,9 @@ def init( \
     for strg, valu in args.items():
         setattr(gdat, strg, valu)
 
+    if gdat.listdictlablcolrpopl is None:
+        gdat.listdictlablcolrpopl = []
+
     # paths
     if not (gdat.pathbase is not None and gdat.pathimag is None and gdat.pathdata is None or \
             gdat.pathbase is None and gdat.pathimag is not None and gdat.pathdata is not None or \
@@ -120,6 +120,11 @@ def init( \
         print(gdat.pathimag)
         raise Exception('')
     
+    print('pergamon initialized...')
+    
+    print('gdat.typeanls')
+    print(gdat.typeanls)
+
     if gdat.pathdata is None:
         gdat.pathbase = os.environ['PERGAMON_DATA_PATH'] + '/%s/' % gdat.typeanls
         gdat.pathdata = gdat.pathbase + 'data/'
@@ -129,9 +134,6 @@ def init( \
     
     # plotting
     gdat.strgplotextn = 'pdf'
-
-    print('gdat.typeanls')
-    print(gdat.typeanls)
 
     if gdat.typeanls == 'micc':
         # merger-induced core collapse supernovae
@@ -147,7 +149,7 @@ def init( \
         print(magttess)
 
     
-    if gdat.typeanls == 'featobsvjwstexop':
+    if gdat.typeanls == 'obsvjwstexop':
         path = gdat.pathdata + 'obsvjwstexop.csv'
         print('Reading from %s...' % path)
         gdat.dictpopl['totl'] = pd.read_csv(path, skiprows=7).to_dict(orient='list')
@@ -158,7 +160,7 @@ def init( \
             summgene(gdat.dictpopl['totl'][namefeat])
 
 
-    if gdat.typeanls == 'featsupntess':
+    if gdat.typeanls == 'supntess':
         for a in [1, 2, 3]:
             path = gdat.pathdata + 'Cycle%d-matched.csv' % a
             strgcycl = 'cyc%d' % a
@@ -184,7 +186,7 @@ def init( \
         namelablsamp = 'name'
 
     # get population features
-    if gdat.typeanls == 'featexarmassradi' or gdat.typeanls == 'featexaratmo' or gdat.typeanls == 'featexarweakmass' or gdat.typeanls == 'featexartran' or gdat.typeanls == 'featexar':
+    if gdat.typeanls == 'exar':
         # features of confirmed exoplanets
         gdat.dictpopl['totl'] = ephesus.retr_dictexar()
         
@@ -194,10 +196,10 @@ def init( \
         print('')
         print('')
 
-    if gdat.typeanls == 'featexarweakmass':
+    if gdat.typeanls == 'exarweakmass':
         # add TOI-712 into the population
         ## features of TOIs
-        dicttoii = miletos.retr_dicttoii()
+        dicttoii = ephesus.retr_dicttoii()
         indx = np.where((dicttoii['nameplan'] == 'TOI 712.01') | (dicttoii['nameplan'] == 'TOI 712.02') | (dicttoii['nameplan'] == 'TOI 712.03'))[0]
         print(dicttoii['nameplan'])
         print(indx)
@@ -208,17 +210,17 @@ def init( \
                 arry = dicttoii[namefeat][indx]
             print(namefeat)
             gdat.dictpopl['totl'][namefeat] = np.concatenate((gdat.dictpopl['totl'][namefeat], arry))
-
+    
     gdat.dictindxsamp = dict()
     gdat.dictnumbsamp = dict()
     gdat.dictindxsamp['totl'] = dict()
-    if gdat.typeanls.startswith('featcosc') or gdat.typeanls.startswith('featpsys'):
+    if gdat.typeanls.startswith('cosc') or gdat.typeanls.startswith('psys'):
         
         gdat.dictpopl['comp'] = dict()
         gdat.dictindxsamp['comp'] = dict()
     
         #featcosc_s2nr_tess2min_tessnomi2min
-        ## 'featcosc': features of COSCs
+        ## 'cosc': features of COSCs
         ## 's2nr': based on signal-to-noise estimation
         ## 'tess2min': 2-min cadence TESS data
         ## 'tessnomi2min': 2-min targets in the nominal mission of TESS
@@ -280,61 +282,24 @@ def init( \
             gdat.dictpopl['comptran']['numbtsec'] = np.ones(gdat.dictnumbsamp['comptran'])
             gdat.dictpopl['comptran']['numbtran'] = 27.3 * gdat.dictpopl['comptran']['numbtsec'] / gdat.dictpopl['comptran']['peri']
             ## SNR
-            if gdat.typeanls.startswith('featpsys'):
+            if gdat.typeanls.startswith('psys'):
                 gdat.dictpopl['comptran']['sdee'] = np.sqrt(gdat.dictpopl['comptran']['duratran']) * gdat.dictpopl['comptran']['dept'] / gdat.dictpopl['comptran']['nois']
-            if gdat.typeanls.startswith('featcosc'):
+            if gdat.typeanls.startswith('cosc'):
                 gdat.dictpopl['comptran']['sdee'] = np.sqrt(gdat.dictpopl['comptran']['duratran']) * gdat.dictpopl['comptran']['amplslen'] / gdat.dictpopl['comptran']['nois']
         
         # detected
         indx = gdat.dictpopl['comptran']['sdee'] > 7
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'comptran', 'comptrandete', indx)
         
-    # name of the feature that holds the labels for samples
-    if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexarmassradi' or gdat.typeanls == 'featexaratmo' or \
-                                                                                gdat.typeanls == 'feattoiiatmo' or gdat.typeanls == 'feattoiimult' or \
-                                                                                                    gdat.typeanls == 'featexarweakmass' or gdat.typeanls == 'featexartran':
-        namelablsamp = 'nameplan'
-    
-    if gdat.typeanls == 'feathosttoiimult':
-        namelablsamp = 'namestar'
-    if gdat.typeanls == 'feattoiifstr':
-        namelablsamp = 'nameplan'
-            
-    if gdat.typeanls.startswith('featcosc'):
-        gdat.listlablpoplcomm = [ \
-                                 ['All stars', 'Stars w/ BH', 'Stars w/ transiting BH', 'Detected'], \
-                                ]
-    elif gdat.typeanls.startswith('featpsys'):
-        gdat.listlablpoplcomm = [ \
-                                 ['All planets', 'Transiting', 'Detected'], \
-                                 ['Stars w/ one or more planets', 'Stars w/ one or more transiting planets', 'Stars w/ one or more detected planets'], \
-                                 # needed only for 1D histograms
-                                 ['All stars', 'Stars w/ one or more planets', 'Stars w/ one or more transiting planets', 'Stars w/ one or more detected planets'], \
-                                ]
-
-    elif gdat.typeanls == 'feattoiifstr' or gdat.typeanls == 'feattceefstr':
-        gdat.listlablpoplcomm = [['All', 'FaintStar']]
-    
-    elif gdat.typeanls == 'feattoiimult' or gdat.typeanls == 'feathosttoiimult':
-        gdat.listlablpoplcomm = [['Candidate Multis', 'Confirmed Multis', 'All']]
-    
-    elif gdat.typeanls == 'featexarmult' or gdat.typeanls == 'feathostexarmult':
-        gdat.listlablpoplcomm = [['TESS-Confirmed Multis', 'All TESS-Confirmed', 'All']]
-    else:
-        if gdat.listlablpoplcomm is None:
-            raise Exception('')
-    
-    if gdat.typeanls == 'feattoiiatmo' or gdat.typeanls == 'feattoiifstr' or gdat.typeanls == 'feattoiimult':
+    if gdat.typeanls == 'toii':
         # features of TOIs
         gdat.dictpopl['totl'] = ephesus.retr_dicttoii()
-        print('gdat.typeanls')
-        print(gdat.typeanls)
 
-    if gdat.typeanls == 'feathosttoiimult':
+    if gdat.typeanls == 'hosttoii':
         # features of hosts of TOIs
         gdat.dictpopl['totl'] = ephesus.retr_dicthostplan('toii')
     
-    if gdat.typeanls == 'feathostexarmult':
+    if gdat.typeanls == 'hostexar':
         # features of hosts of exoplanets on NASA Exoplanet Archive
         gdat.dictpopl['totl'] = ephesus.retr_dicthostplan('exar')
 
@@ -349,14 +314,14 @@ def init( \
     #               ]
                 
     # subpopulations
-    if gdat.typeanls == 'featexar':
+    if gdat.typeanls == 'exar':
         
-        if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexarhabi':
+        if gdat.typeanls == 'exar' or gdat.typeanls == 'exarhabi':
             # planets with habitable insolation
             indx = np.where((gdat.dictpopl['totl']['inso'] > 0.7) & (gdat.dictpopl['totl']['inso'] < 1.1))[0]
             ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'gmasinsohabi', indx)
         
-        if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexarmassradi':
+        if gdat.typeanls == 'exar' or gdat.typeanls == 'exarmassradi':
             # planets with good measured radii and masses
             indx = []
             for n  in range(gdat.dictpopl['totl']['strgrefrmassplan'].size):
@@ -369,6 +334,10 @@ def init( \
             indx = np.setdiff1d(indxmeas, indxgood)
             ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'gmas', indx)
             
+            # young
+            indx = np.where(gdat.dictpopl['totl']['tagestar'] < 100.)[0]
+            ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'yong', indx)
+
             # low insolation
             indx = np.where(gdat.dictpopl['totl']['inso'] < 10.)[0]
             ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'gmasinsohabi', indx)
@@ -381,53 +350,47 @@ def init( \
             indx = np.where(gdat.dictpopl['totl']['inso'] > 1000.)[0]
             ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'gmasinsohigh', indx)
 
-        if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexarmult' or gdat.typeanls == 'featexaratmo' or gdat.typeanls == 'featexarweakmass' or gdat.typeanls == 'featexartran':
+        if gdat.typeanls == 'exar':
             # subpopulation with transiting planets
             indx = np.where(gdat.dictpopl['totl']['booltran'])[0]
             ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'tran', indx)
             
-            if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexarmassradi' or \
-                                            gdat.typeanls == 'featexarmult' or gdat.typeanls == 'featexaratmo' or gdat.typeanls == 'featexarweakmass':
-
-                # create a subpopulation with targets discovered by TESS
-                indx = np.where(gdat.dictpopl['tran']['facidisc'] == 'Transiting Exoplanet Survey Satellite (TESS)')[0]
-                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantess', indx)
-                
-                if gdat.typeanls == 'featexarmult':
-                    ## TESS-confirmed planets in multi systems
-                    indx = np.where(gdat.dictpopl['trantess']['numbcomptranstar'] > 1)[0]
-                    ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantess', 'trantessmult', indx)
+            # create a subpopulation with targets discovered by TESS
+            indx = np.where(gdat.dictpopl['tran']['facidisc'] == 'Transiting Exoplanet Survey Satellite (TESS)')[0]
+            ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantess', indx)
+            
+            ## TESS-confirmed planets in multi systems
+            indx = np.where(gdat.dictpopl['trantess']['numbplantranstar'] > 1)[0]
+            ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantess', 'trantessmult', indx)
         
-                if gdat.typeanls == 'featexar' or gdat.typeanls == 'featexaratmo' or gdat.typeanls == 'featexarweakmass':
+            if False and gdat.typeanls == 'exar':
 
-                    # create a subpopulation with targets brighter than 12th TESS magnitude
-                    indx = np.where(gdat.dictpopl['trantess']['tmagsyst'] < 12.)[0]
-                    ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantess', 'trantessbrgt', indx)
-                    
-                    # create a subpopulation with planets smaller than four times the Earth
-                    indx = np.where((gdat.dictpopl['trantessbrgt']['radiplan'] < 4.) & (gdat.dictpopl['trantessbrgt']['radiplan'] > 2.))[0]
-                    ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgt', 'trantessbrgtsmal', indx)
-                    
-                    # create a subpopulation with planets with good visibility from LCO (dec = -30 deg)
-                    indx = np.where(gdat.dictpopl['trantessbrgtsmal']['declstar'] < 30.)[0]
-                    ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmal', 'trantessbrgtsmallcoo', indx)
-                    
-                    # create a subpopulation with planets with good atmospheric characterization potential
-                    indx = np.where((gdat.dictpopl['trantessbrgtsmallcoo']['esmm'] > 5.) | (gdat.dictpopl['trantessbrgtsmallcoo']['tsmm'] > 50.))[0]
-                    ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcoo', 'trantessbrgtsmallcooatmo', indx)
-                   
-                    if gdat.typeanls == 'featexaratmo':
-                        # create a subpopulation with good mass measurements
-                        indx = np.where(gdat.dictpopl['trantessbrgtsmallcooatmo']['massplan'] / gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan'] > 5.)[0]
-                        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcooatmo', 'trantessbrgtsmallcooatmogmas', indx)
+                # create a subpopulation with targets brighter than 12th TESS magnitude
+                indx = np.where(gdat.dictpopl['trantess']['tmagsyst'] < 12.)[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantess', 'trantessbrgt', indx)
                 
-                    if gdat.typeanls == 'featexarweakmass':
-                        # create a subpopulation with weak mass measurements
-                        indx = np.where((gdat.dictpopl['trantessbrgtsmallcooatmo']['massplan'] / gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan'] < 5.) | \
-                                                                                                      ~np.isfinite(gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan']))[0]
-                        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcooatmo', 'trantessbrgtsmallcooatmowmas', indx)
+                # create a subpopulation with planets smaller than four times the Earth
+                indx = np.where((gdat.dictpopl['trantessbrgt']['radiplan'] < 4.) & (gdat.dictpopl['trantessbrgt']['radiplan'] > 2.))[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgt', 'trantessbrgtsmal', indx)
+                
+                # create a subpopulation with planets with good visibility from LCO (dec = -30 deg)
+                indx = np.where(gdat.dictpopl['trantessbrgtsmal']['declstar'] < 30.)[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmal', 'trantessbrgtsmallcoo', indx)
+                
+                # create a subpopulation with planets with good atmospheric characterization potential
+                indx = np.where((gdat.dictpopl['trantessbrgtsmallcoo']['esmm'] > 5.) | (gdat.dictpopl['trantessbrgtsmallcoo']['tsmm'] > 50.))[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcoo', 'trantessbrgtsmallcooatmo', indx)
+               
+                # create a subpopulation with good mass measurements
+                indx = np.where(gdat.dictpopl['trantessbrgtsmallcooatmo']['massplan'] / gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan'] > 5.)[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcooatmo', 'trantessbrgtsmallcooatmogmas', indx)
+            
+                # create a subpopulation with weak mass measurements
+                indx = np.where((gdat.dictpopl['trantessbrgtsmallcooatmo']['massplan'] / gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan'] < 5.) | \
+                                                                                              ~np.isfinite(gdat.dictpopl['trantessbrgtsmallcooatmo']['stdvmassplan']))[0]
+                ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'trantessbrgtsmallcooatmo', 'trantessbrgtsmallcooatmowmas', indx)
         
-    if gdat.typeanls == 'feattoiiatmo' or gdat.typeanls == 'feattoiifstr' or gdat.typeanls == 'feattoiimult':
+    if gdat.typeanls == 'toii':
         # subpopulations of PCs and FPs
         # total number of TOIs
         numbtoii = len(gdat.dictpopl['totl']['strgcomm'])
@@ -435,56 +398,62 @@ def init( \
 
         ### PC
         indx = np.where(gdat.dictpopl['totl']['typedisptess'] == 'PC')[0]
-        #indx = []
-        #for n in indxtoii:
-        #    if gdat.dictpopl['totl']['typedisptess'][n] == 'PC':
-        #        indx.append(n)
-        #indx = np.array(indx, dtype=int)
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcan', indx)
                 
-        #print('gdat.dictpopl[totl][boolfpos]')
-        #summgene(gdat.dictpopl['totl']['boolfpos'])
-        #print('indxpcan')
-        #summgene(indxpcan)
-
         # CP
         indx = np.where(gdat.dictpopl['totl']['typedisptess'] == 'CP')[0]
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'conp', indx)
         
-        ## FP
-        #indxfpos = np.setdiff1d(indxtoii, indxpcan)
-        #ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'fpos', indx)
+        ## EB
+        indx = np.where(gdat.dictpopl['totl']['typedisptess'] == 'EB')[0]
+        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'fpos', indx)
         
-    # indices of samples of subpopulations
-    if gdat.typeanls == 'feattoiifstr':
+        # indices of samples of subpopulations
         
-        ## FaintStars
+        ## FaintStars PM
         indx = []
         for n in indxtoii:
-            if isinstance(gdat.dictpopl['totl']['strgcomm'][n], str) and 'faint-star' in gdat.dictpopl['totl']['strgcomm'][n]:
+            if isinstance(gdat.dictpopl['totl']['strgcomm'][n], str) and 'found in faint-star QLP search' in gdat.dictpopl['totl']['strgcomm'][n] \
+                                                                                                                    and int(gdat.dictpopl['totl']['toii'][n]) < 4500:
                 indx.append(n)
         indx = np.array(indx)
-        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'fstr', indx)
+        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'fstrpmis', indx)
+        
+        ## FaintStars EM1
+        indx = []
+        for n in indxtoii:
+            if isinstance(gdat.dictpopl['totl']['strgcomm'][n], str) and 'found in faint-star QLP search' in gdat.dictpopl['totl']['strgcomm'][n] \
+                                                                                                                    and int(gdat.dictpopl['totl']['toii'][n]) > 4500:
+                indx.append(n)
+        indx = np.array(indx)
+        ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'fstremis', indx)
         
         ## Others
-        indx = np.setdiff1d(indxtoii, gdat.dictindxsamp['totl']['fstr'])
+        indx = []
+        for n in indxtoii:
+            if isinstance(gdat.dictpopl['totl']['strgcomm'][n], str) and not 'found in faint-star QLP search' in gdat.dictpopl['totl']['strgcomm'][n]:
+                indx.append(n)
+        indx = np.array(indx)
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'othr', indx)
         
-    if gdat.typeanls == 'feathosttoiimult' or gdat.typeanls == 'feattoiimult':
+    if gdat.typeanls == 'hosttoii' or gdat.typeanls == 'toii':
         
         ## candidate planets in multi systems
-        indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'] > 1)[0]
+        indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] > 1)[0]
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
         
         ## confirmed planets in multi systems
-        indx = np.where(gdat.dictpopl['conp']['numbcomptranstar'] > 1)[0]
+        indx = np.where(gdat.dictpopl['conp']['numbplantranstar'] > 1)[0]
         ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
         
         ## singles
-        #indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'] == 1)[0]
+        #indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] == 1)[0]
         #ephesus.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
-        
-    if gdat.typeanls == 'feattoiifstr' or gdat.typeanls == 'feattoiimult':
+    
+    if gdat.typeanls == 'toii' or gdat.typeanls == 'exar':
+        del gdat.dictpopl['totl']['esmm']
+    
+    if gdat.typeanls == 'toii':
         
         # replace BJD with TESS-truncated BJD (TBJD)
         gdat.dictpopl['totl']['epoctess'] = gdat.dictpopl['totl']['epoc'] - 2457000
@@ -509,7 +478,7 @@ def init( \
     gdat.figrsizeydob = [8., 4.]
     gdat.figrsizeydobskin = [8., 2.5]
         
-    if gdat.typeanls == 'feattceefstr':
+    if gdat.typeanls == 'tceefstr':
         
         # base path for FaintStars
         pathfstr = '/Users/tdaylan/Documents/work/data/external/FaintStars/'
@@ -539,6 +508,7 @@ def init( \
         print('listnamevarbfstr')
         print(listnamevarbfstr)
         
+        listgdat = tdpy.gdatstrt()
         listgdat.dictpopl = dict()
         listgdat.dictpopl['fstrastr'] = [dict() for o in indxtsecnomi]
         for namevarbfstr in listnamevarbfstr:
@@ -723,30 +693,88 @@ def init( \
         
     gdat.listnamepopl = np.array(list(gdat.dictpopl.keys()))
     
-    if gdat.typeanls == 'featsupntess':
-        gdat.listnamepoplcomm = [['cyc1', 'cyc2', 'cyc3']]
-    elif gdat.typeanls.startswith('featcosc'):
-        gdat.listnamepoplcomm = [ \
-                                 [strgpoplstar, strgpoplstar + 'comp', strgpoplstar + 'comptran', strgpoplstar + 'comptrandete'], 
-                                ]
-    elif gdat.typeanls.startswith('featpsys'):
-        gdat.listnamepoplcomm = [ \
-                                 ['comp', 'comptran', 'comptrandete'], \
-                                 [strgpoplstar + 'comp', strgpoplstar + 'comptran', strgpoplstar + 'comptrandete'], \
-                                 # needed only for 1D histograms
-                                 [strgpoplstar, strgpoplstar + 'comp', strgpoplstar + 'comptran', strgpoplstar + 'comptrandete'], 
-                                ]
-    elif gdat.typeanls == 'feattoiifstr':
-        gdat.listnamepoplcomm = [['totl', 'fstr']]
-    elif gdat.typeanls == 'feattoiimult' or gdat.typeanls == 'feathosttoiimult':
-        gdat.listnamepoplcomm = [['pcanmult', 'conpmult', 'totl']]
-    elif gdat.typeanls == 'featexarmult' or gdat.typeanls == 'feathostexarmult':
-        gdat.listnamepoplcomm = [['trantessmult', 'trantess', 'totl']]
-    else:
-        if gdat.listnamepopl is not None:
-            gdat.listnamepoplcomm = [gdat.listnamepopl]
-        else:
-            raise Exception('')
+    if gdat.typeanls == 'exar':
+        gdat.lablpoplmast = 'Exoplanets'
+    if gdat.typeanls == 'hostexar':
+        gdat.lablpoplmast = 'Exoplanet hosts'
+    if gdat.typeanls == 'toii':
+        gdat.lablpoplmast = 'TOIs'
+    if gdat.typeanls == 'hosttoii':
+        gdat.lablpoplmast = 'TOI Hosts'
+    if gdat.typeanls == 'hosttoii' or gdat.typeanls == 'hostexar':
+        namelablsamp = 'namestar'
+    if gdat.typeanls == 'toii' or gdat.typeanls == 'exar':
+        namelablsamp = 'nameplan'
+        
+    # fill the list of dictionaries with key carriying the name of the population and elements carrying the label and color
+    if gdat.typeanls == 'supntess':
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['cyc1'] = ['Cycle 1', 'gray']
+        gdat.listdictlablcolrpopl[-1]['cyc2'] = ['Cycle 2', 'gray']
+        gdat.listdictlablcolrpopl[-1]['cyc3'] = ['Cycle 3', 'gray']
+    
+    if gdat.typeanls.startswith('cosc') or gdat.typeanls.startswith('psys'):
+        if gdat.typeanls.startswith('cosc'):
+            lablelem = 'BH'
+        if gdat.typeanls.startswith('psys'):
+            lablelem = 'planet'
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1][strgpoplstar] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1][strgpoplstar+'comp'] = ['w/ %s' % lablelem, 'gray']
+        gdat.listdictlablcolrpopl[-1][strgpoplstar+'comptran'] = ['w/ transiting %s' % lablelem, 'gray']
+        gdat.listdictlablcolrpopl[-1][strgpoplstar+'comptrandete'] = ['w/ detected transiting %s' % lablelem, 'gray']
+    
+    if gdat.typeanls == 'hosttoii' or gdat.typeanls == 'hostexar' or gdat.typeanls == 'toii' or gdat.typeanls == 'exar':
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1]['tran'] = ['Transiting', 'blue']
+    
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['trantess'] = ['Transiting, TESS discoveries', 'blue']
+        gdat.listdictlablcolrpopl[-1]['trantessbrgt'] = ['Bright and transiting TESS discoveries', 'blue']
+        gdat.listdictlablcolrpopl[-1]['trantessbrgtsmal'] = ['Bright, small, and transiting TESS discoveries', 'blue']
+        gdat.listdictlablcolrpopl[-1]['trantessbrgtsmallcoo'] = ['Bright, small, and transiting TESS discoveries visible from LCO', 'blue']
+        gdat.listdictlablcolrpopl[-1]['trantessbrgtsmallcooatmo'] = ['Bright, small, and transiting TESS discoveries visible from LCO, favorable to AC', 'blue']
+    
+    if gdat.typeanls == 'exar' or gdat.typeanls == 'hostexar':
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1]['yong'] = ['Young', 'blue']
+        
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1]['gmas'] = ['Precise mass', 'blue']
+        
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1]['gmasinsohabi'] = ['HZ, precise mass', 'blue']
+        gdat.listdictlablcolrpopl[-1]['gmasinsomedi'] = ['Medium-irradiated, precise mass', 'blue']
+        gdat.listdictlablcolrpopl[-1]['gmasinsohigh'] = ['Highly-irradiated, precise mass', 'blue']
+        
+    if gdat.typeanls == 'toii' or gdat.typeanls == 'hosttoii':
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
+        gdat.listdictlablcolrpopl[-1]['othr'] = ['TOI Process', 'gray']
+        gdat.listdictlablcolrpopl[-1]['fstrpmis'] = ['FaintStar PM', 'blue']
+        gdat.listdictlablcolrpopl[-1]['fstremis'] = ['FaintStar EM1', 'orange']
+    
+        gdat.listdictlablcolrpopl.append(dict())
+        gdat.listdictlablcolrpopl[-1]['othr'] = ['Other TOIs', 'gray']
+        gdat.listdictlablcolrpopl[-1]['pcan'] = ['PC', 'blue']
+        gdat.listdictlablcolrpopl[-1]['fpos'] = ['FP', 'green']
+        gdat.listdictlablcolrpopl[-1]['knwn'] = ['KP', 'orange']
+    
+    if gdat.typeanls == 'toii':
+        pass
+
+    if gdat.typeanls == 'hosttoii':
+        pass
+
+    if gdat.typeanls == 'tceefstr':
+        pass
+    
+    if len(gdat.listdictlablcolrpopl) == 0:
+        raise Exception('')
     
     gdat.numbpopl = len(gdat.listnamepopl)
     if gdat.numbpopl == 0:
@@ -822,38 +850,30 @@ def init( \
         gdat.dictpoplfilt[gdat.listnamepopl[k]] = dict()
         
         for n in gdat.indxfeat[k]:
-            #if gdat.typeanls.startswith('featpsys') and not listnamefeat[k][n] in ['cosi', 'densstar', 'massstar', 'nois', 'peri', 'numbcompstarmean', 'radiplan', \
+            #if gdat.typeanls.startswith('psys') and not listnamefeat[k][n] in ['cosi', 'densstar', 'massstar', 'nois', 'peri', 'numbcompstarmean', 'radiplan', \
             #                                                                                                            'radistar', 'rmag', 'rsma', 'smax', 'distsyst']:
             #    continue
-
-            if gdat.typeanls == 'feattoiifstr' and not listnamefeat[k][n] in \
-                                                                                ['radistar', 'tmagsyst']:
-                                                                                #['radiplan', 'toii', 'radistar', 'tmptstar', 'tmagsyst', 'distsyst', \
-                                                                                # 'loggstar', 'tsmm', 'esmm', 'massstar', 'metastar', 'dcyc', 'dept', 'peri'] \
-                continue
+            
+            boolgood = False
+            if (gdat.typeanls == 'hostexar' or gdat.typeanls == 'hosttoii' or gdat.typeanls == 'exar' or gdat.typeanls == 'toii') and listnamefeat[k][n] in [ \
+                                                                                 'rascstar', 'declstar', 'loecstar', 'laecstar', \
+                                                                                 'radistar', 'massstar', 'metastar', 'loggstar', 'tagetar', 'distsyst', 'numbplantranstar', \
+                                                                                 'tmagsyst', 'vmagsyst']:
+                boolgood = True
+            
+            if (gdat.typeanls == 'exar' or gdat.typeanls == 'toii') and listnamefeat[k][n] in [ \
+                                                                                 'radiplan', 'massplan', 'densplan', 'tmptplan', 'stdvmassplan', 'vsec', \
+                                                                                 'peri', 'duratran', 'dcyc', 'dept', \
+                                                                                 'inso', \
+                                                                                 'tsmm', 'esmm', 'esmmacwg', 'tsmmacwg']:
+                boolgood = True
         
-            elif (gdat.typeanls == 'feattoiimult' or gdat.typeanls == 'featexarmult') and not listnamefeat[k][n] in \
-                                                                            ['numbcomptranstar']:
-                continue
+            elif gdat.typeanls == 'toii' and listnamefeat[k][n] in [ \
+                                                                      'toii', \
+                                                                     ]:
+                boolgood = True
         
-            elif gdat.typeanls == 'feathosttoiimult' and not listnamefeat[k][n] in ['numbcomptranstar']:
-                continue
-        
-            elif gdat.typeanls == 'featexar' and not listnamefeat[k][n] in ['rascstar', 'declstar']:
-                continue
-        
-            elif gdat.typeanls == 'featexartran' and not listnamefeat[k][n] in ['dcyc', 'peri', 'nameplan']:
-                continue
-        
-            elif gdat.typeanls == 'featexarmassradi' and not listnamefeat[k][n] in ['radiplan', 'massplan', 'tmptplan', 'radistar', 'densplan', 'inso']:
-                continue
-        
-            elif (gdat.typeanls == 'feattoiiatmo' or gdat.typeanls == 'featexaratmo' or gdat.typeanls == 'featexarweakmass') and not listnamefeat[k][n] in \
-                                                  [ \
-                                                   'radiplan', 'massplan', 'tmptplan', 'radistar', 'stdvmassplan', 'peri', 'duratran', \
-                                                   'tsmm', 'esmm', 'vmagsyst', 'densplan', 'nameplan', 'loecstar', 'laecstar', \
-                                                   'rascstar', 'declstar', 'esmmacwg', 'tsmmacwg', \
-                                                  ]:
+            if not boolgood:
                 continue
 
             gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]] = gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]
@@ -874,8 +894,10 @@ def init( \
             listscalfeatfilt[k].append(listscalfeat[k][n])
         
         if len(listsampfilt[k]) == 0:
-            print('gdat.typeanls')
-            print(gdat.typeanls)
+            print('k')
+            print(k)
+            print('gdat.indxfeat[k]')
+            summgene(gdat.indxfeat[k])
             raise Exception('')
 
         listsampfilt[k] = np.vstack(listsampfilt[k]).T
@@ -890,7 +912,7 @@ def init( \
         gdat.indxfeat[k] = np.arange(numbfeat[k])
         listnamefeat[k] = np.array(listnamefeat[k])
 
-    if gdat.typeanls == 'featexarweakmass':
+    if gdat.typeanls == 'exarweakmass':
         
         import astropy
         from astropy.visualization import astropy_mpl_style, quantity_support
@@ -986,41 +1008,47 @@ def init( \
     typeplottdim = 'best'
     
     # visualize each population separately
-    for k in gdat.indxpopl:
-        if namelablsamp is None:
-            listlablsamp = None
-        else:
-            listlablsamp = gdat.dictpopl[gdat.listnamepopl[k]][namelablsamp]
-        path = gdat.pathimag + gdat.listnamepopl[k] + '/'
-        tdpy.plot_grid(path, gdat.listnamepopl[k], listsamp[k], listlablfeat[k], typeplottdim=typeplottdim, boolplotindi=True, boolplotpair=True, \
-                                                                # a bool parameter is giving error when this is True due to lower and upper limits being equal
-                                                                boolplottria=False, \
-                                                                listscalpara=listscalfeat[k], typefileplot=typefileplot, listnamepara=listnamefeat[k], listlablsamp=listlablsamp)
+    #for k in gdat.indxpopl:
+    #    if namelablsamp is None:
+    #        listlablsamp = None
+    #    else:
+    #        listlablsamp = gdat.dictpopl[gdat.listnamepopl[k]][namelablsamp]
+    #    path = gdat.pathimag + gdat.listnamepopl[k] + '/'
+    #    tdpy.plot_grid(path, gdat.listnamepopl[k], listsamp[k], listlablfeat[k], typeplottdim=typeplottdim, boolplotindi=True, boolplotpair=True, \
+    #                                                            # a bool parameter is giving error when this is True due to lower and upper limits being equal
+    #                                                            boolplottria=False, \
+    #                                                            listscalpara=listscalfeat[k], typefileplot=typefileplot, listnamepara=listnamefeat[k], listlablsamp=listlablsamp)
     
-    print('gdat.listlablpoplcomm')
-    print(gdat.listlablpoplcomm)
     print('gdat.listnamepopl')
     print(gdat.listnamepopl)
-    print('gdat.listnamepoplcomm')
-    print(gdat.listnamepoplcomm)
-    # plot populations together
-    numbplotcomm = len(gdat.listnamepoplcomm)
-    indxplotcomm = np.arange(numbplotcomm)
+    print('gdat.listdictlablcolrpopl')
+    print(gdat.listdictlablcolrpopl)
     
-
+    # plot populations together
+    numbplotcomm = len(gdat.listdictlablcolrpopl)
+    indxplotcomm = np.arange(numbplotcomm)
+    gdat.listnamepoplcomm = [[] for e in indxplotcomm]
+    gdat.listcolrpoplcomm = [[] for e in indxplotcomm]
+    gdat.listlablpoplcomm = [[] for e in indxplotcomm]
+    
     print('Comparing populations...')
     for e in indxplotcomm:
-        gdat.listnamepoplcomm[e] = np.array(gdat.listnamepoplcomm[e])
-
+        #gdat.listnamepoplcomm[e] = list(gdat.listdictlablcolrpopl[e].keys())
+        #gdat.listnamepoplcomm[e] = np.array(gdat.listnamepoplcomm[e])
+        
+        gdat.listnamepoplcomm[e] = list(gdat.listdictlablcolrpopl[e].keys())
         indxfrst = np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0][0]
-    
+        
+        print('gdat.listnamepoplcomm[e]')
         print(gdat.listnamepoplcomm[e])
         for n in gdat.indxfeat[indxfrst]:
-            print(listnamefeat[indxfrst][n])
+            print('Feature: %s' % listnamefeat[indxfrst][n])
             for k in range(len(gdat.listnamepoplcomm[e])):
+                print('gdat.listnamepoplcomm[e][k]')
                 print(gdat.listnamepoplcomm[e][k])
+                print('gdat.listnamepopl')
+                print(gdat.listnamepopl)
                 indxseco = np.where(gdat.listnamepoplcomm[e][k] == gdat.listnamepopl)[0][0]
-
                 summgene(gdat.dictpopl[gdat.listnamepopl[indxseco]][listnamefeat[indxseco][n]], boolslin=True)
             print('')
         print('')
@@ -1031,87 +1059,82 @@ def init( \
             indxpoplcomm = []
             for namepoplcomm in gdat.listnamepoplcomm[e]:
                 indxpoplcomm.append(np.where(gdat.listnamepopl == namepoplcomm)[0][0])
+            
             indxpoplcomm = np.array(indxpoplcomm)
 
             ## find the list of feature names common across all populations
-            listnamefeatcommtemp = []
+            gdat.listnamefeatcommtemp = []
             
-            listnamefeatcomm = []
-            listsampcomm = []
-            listscalfeatcomm = []
-            listlablfeatcomm = []
+            gdat.listnamefeatcomm = []
+            gdat.listscalfeatcomm = []
+            gdat.listlablfeatcomm = []
             
             for u in indxpoplcomm:
-                listnamefeatcommtemp.append(listnamefeat[u])
-            listnamefeatcommtemp = np.concatenate(listnamefeatcommtemp)
-            listnamefeatcommtemp = np.unique(listnamefeatcommtemp)
-            for namefeat in listnamefeatcommtemp:
+                gdat.listnamefeatcommtemp.append(listnamefeat[u])
+            gdat.listnamefeatcommtemp = np.concatenate(gdat.listnamefeatcommtemp)
+            gdat.listnamefeatcommtemp = np.unique(gdat.listnamefeatcommtemp)
+            for namefeat in gdat.listnamefeatcommtemp:
                 booltemp = True
                 for u in indxpoplcomm:
                     if not namefeat in listnamefeat[u]:
                         booltemp = False
                 if booltemp:
-                    listnamefeatcomm.append(namefeat)
+                    gdat.listnamefeatcomm.append(namefeat)
             
             indxfeatcomm = [[] for u in indxpoplcomm]
             for uu, u in enumerate(indxpoplcomm):
                 # list of feature indcices for each population, which will be plotted together
-                for namefeat in listnamefeatcomm:
+                for namefeat in gdat.listnamefeatcomm:
                     indxfeatcomm[uu].append(np.where(listnamefeat[u] == namefeat)[0][0])
                 indxfeatcomm[uu] = np.array(indxfeatcomm[uu])
             
             for indx in indxfeatcomm[0]:
-                listscalfeatcomm.append(listscalfeat[indxpoplcomm[0]][indx])
-                listlablfeatcomm.append(listlablfeat[indxpoplcomm[0]][indx])
+                gdat.listscalfeatcomm.append(listscalfeat[indxpoplcomm[0]][indx])
+                gdat.listlablfeatcomm.append(listlablfeat[indxpoplcomm[0]][indx])
                 
-            listsampcomm = [[] for u in indxpoplcomm]
+            gdat.listsampcomm = [[] for u in indxpoplcomm]
             for uu, u in enumerate(indxpoplcomm):
-                listsampcomm[uu] = listsamp[u][:, indxfeatcomm[uu]]
+                gdat.listsampcomm[uu] = listsamp[u][:, indxfeatcomm[uu]]
             
             # number of samples in each population
             numbsamppopl = np.empty(numbpoplcomm, dtype=int)
             for uu in range(numbpoplcomm):
-                numbsamppopl[uu] = listsampcomm[uu].shape[0]
+                numbsamppopl[uu] = gdat.listsampcomm[uu].shape[0]
             
-            if gdat.boolsortpoplsize:
-                # incides of populations that sort them from largest to smallest (the plotting order)
-                indxpoplsort = np.argsort(numbsamppopl)[::-1]
+            # determine the list of labels for compared populations
+            for uu, u in enumerate(indxpoplcomm):
+                gdat.listlablpoplcomm[e].append(gdat.listdictlablcolrpopl[e][gdat.listnamepopl[u]][0])
             
-                # sort populations according to sample size starting from largest 
-                print('Sorting the population order according to their sizes...')
-                listsampcommtemp = [[] for u in indxpoplcomm]
-                listnamepoplcommtemp = [[] for u in indxpoplcomm]
-                listlablpoplcommtemp = [[] for u in indxpoplcomm]
-                for uu in range(numbpoplcomm):
-                    listsampcommtemp[uu] = listsampcomm[indxpoplsort[uu]]
-                    listnamepoplcommtemp[uu] = gdat.listnamepoplcomm[e][indxpoplsort[uu]]
-                    listlablpoplcommtemp[uu] = gdat.listlablpoplcomm[e][indxpoplsort[uu]]
-                listsampcomm = listsampcommtemp
-                listlablpoplcomm = listlablpoplcommtemp
-                listnamepoplcomm = listnamepoplcommtemp
-            else:
-                listlablpoplcomm = gdat.listlablpoplcomm[e]
-                listnamepoplcomm = gdat.listnamepoplcomm[e]
-            print('listnamepoplcomm')
-            print(listnamepoplcomm)
+            print('gdat.listdictlablcolrpopl')
+            print(gdat.listdictlablcolrpopl)
+            print('gdat.listlablpoplcomm')
+            print(gdat.listlablpoplcomm)
+
+            # determine the list of colors for compared populations
+            for uu, u in enumerate(indxpoplcomm):
+                gdat.listcolrpoplcomm[e].append(gdat.listdictlablcolrpopl[e][gdat.listnamepopl[u]][1])
+            
+            print('gdat.listnamepoplcomm[e]')
+            print(gdat.listnamepoplcomm[e])
+            print('gdat.listlablpoplcomm[e]')
+            print(gdat.listlablpoplcomm[e])
+            print('gdat.listcolrpoplcomm[e]')
+            print(gdat.listcolrpoplcomm[e])
+            
             strgplot = ''
             for uu, u in enumerate(indxpoplcomm):
-                strgplot += listnamepoplcomm[uu]
+                strgplot += gdat.listnamepoplcomm[e][uu]
             
-            # determine the list of colors for populations
-            if dictcolrpopl is not None:
-                listcolrpopl = []
-                for uu, u in enumerate(indxpoplcomm):
-                    strgplot += listnamepoplcomm[uu]
-                    listcolrpopl.append(dictcolrpopl[listnamepoplcomm[uu]])
-            else:
-                listcolrpopl = None
-            
-            tdpy.plot_grid(gdat.pathimag, strgplot, listsampcomm, listlablfeatcomm, boolplotindi=True, boolplotpair=True, boolplottria=False, typeplottdim=typeplottdim, \
-                                     listcolrpopl=listcolrpopl, listscalpara=listscalfeatcomm, typefileplot=typefileplot, listnamepara=listnamefeatcomm, listlablpopl=listlablpoplcomm)
+            tdpy.plot_grid(gdat.pathimag, strgplot, gdat.listsampcomm, gdat.listlablfeatcomm, boolplotindi=True, boolplotpair=True, boolplottria=False, typeplottdim=typeplottdim, \
+                           typefileplot=typefileplot, \
+                           listnamepara=gdat.listnamefeatcomm, \
+                           listscalpara=gdat.listscalfeatcomm, \
+                           listlablpopl=gdat.listlablpoplcomm[e], \
+                           listcolrpopl=gdat.listcolrpoplcomm[e], \
+                           )
             
         
-        if gdat.typeanls.startswith('featcosc') or gdat.typeanls[12:].startswith('exopmock'):
+        if gdat.typeanls.startswith('cosc') or gdat.typeanls[12:].startswith('exopmock'):
             # variables
             listnamevarbreca = ['massbhol', 'peri', 'incl']
             listlablvarbreca = [['$M_c$', '$M_\odot$'], ['$P$', 'day'], ['$i$', '$^o$']]
