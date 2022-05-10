@@ -10,7 +10,6 @@ import tdpy
 import lygos
 from tdpy import summgene 
 import miletos
-import mergen
 
 def retr_modl_corr(gdat, feat, inpt):
     '''
@@ -1251,6 +1250,7 @@ def init( \
 
     # PCA
     if gdat.boolprca:
+        import mergen
         mergen.exec_prca_skit(listvarb)
 
     # search for clusters
