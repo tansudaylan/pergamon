@@ -898,6 +898,10 @@ def init( \
             print(k)
             print('gdat.indxfeat[k]')
             summgene(gdat.indxfeat[k])
+            print('gdat.listnamepopl')
+            print(gdat.listnamepopl)
+            print('listnamefeat')
+            print(listnamefeat)
             raise Exception('')
 
         listsampfilt[k] = np.vstack(listsampfilt[k]).T
@@ -911,93 +915,6 @@ def init( \
         numbfeat[k] = len(listnamefeat[k])
         gdat.indxfeat[k] = np.arange(numbfeat[k])
         listnamefeat[k] = np.array(listnamefeat[k])
-
-    if gdat.typeanls == 'exarweakmass':
-        
-        import astropy
-        from astropy.visualization import astropy_mpl_style, quantity_support
-        import astropy.units as u
-        
-        # location object for LCO
-        objtlocalcoo = astropy.coordinates.EarthLocation(lat=-29.01418*u.deg, lon=-70.69239*u.deg, height=2515.819*u.m)
-        
-        # time object for the year
-        objttimeyear = astropy.time.Time(astropy.time.Time('2022-01-11 00:00:00').jd + np.linspace(0., 365., 10000), format='jd', location=objtlocalcoo)
-        timeside = objttimeyear.sidereal_time('mean')
-        
-        # alt-az coordinate object for the Sun
-        objtcoorsunnalazyear = astropy.coordinates.get_sun(objttimeyear)
-            
-        # delt time arry for night
-        timedelt = np.linspace(-12., 12., 1000)
-        
-        for n in range(len(gdat.dictpoplfilt['weakmass'][namelablsamp])):
-            
-            continue
-
-            #if n == 1:
-            #    raise Exception('')
-
-            strgsamp = ''.join(gdat.dictpoplfilt['weakmass'][namelablsamp][n].split(' '))
-            
-            # choose the time sample where the local sidereal time is closest to the right ascension
-            indx = np.argmin(abs(180. - abs(objtcoorsunnalazyear.ra.degree - gdat.dictpopl['weakmass']['rascstar'][n])))# + abs(timeside.degree - gdat.dictpopl['goodatmo']['rascstar'][n]))
-            
-            # time object for night at midnight
-            objttimenighcent = astropy.time.Time(int(objttimeyear[indx].jd), format='jd', location=objtlocalcoo) - 12 * u.hour
-            objttimenigh = objttimenighcent + timedelt * u.hour
-            
-            # frame object for LCO at night
-            objtframlcoonigh = astropy.coordinates.AltAz(obstime=objttimenigh, location=objtlocalcoo)
-            
-            # alt-az coordinate object for the Sun
-            objtcoorsunnalaznigh = astropy.coordinates.get_sun(objttimenigh).transform_to(objtframlcoonigh)
-            # alt-az coordinate object for the Moon
-            objtcoormoonalaznigh = astropy.coordinates.get_moon(objttimenigh).transform_to(objtframlcoonigh)
-            
-            # alt-az coordinate object for the planet
-            objtcoorplanalaznigh = astropy.coordinates.SkyCoord(ra=gdat.dictpoplfilt['weakmass']['rascstar'][n], \
-                                                            dec=gdat.dictpoplfilt['weakmass']['declstar'][n], frame='icrs', unit='deg').transform_to(objtframlcoonigh)
-            
-            strgtitl = '%s, %s UTC' % (gdat.dictpoplfilt['weakmass'][namelablsamp][n], objttimenighcent.iso)
-
-            # plot air mass
-            figr, axis = plt.subplots(figsize=(4, 4))
-            massairr = objtcoorplanalaznigh.secz
-            indx = np.where(np.isfinite(massairr) & (massairr > 0))[0]
-            plt.plot(timedelt[indx], massairr[indx])
-            axis.fill_between(timedelt, 0, 90, objtcoorsunnalaznigh.alt < -0*u.deg, color='0.5', zorder=0)
-            axis.fill_between(timedelt, 0, 90, objtcoorsunnalaznigh.alt < -18*u.deg, color='k', zorder=0)
-            axis.fill_between(timedelt, 0, 90, (massairr > 2.) | (massairr < 1.), color='r', alpha=0.3, zorder=0)
-            axis.set_xlabel('$\Delta t$ [hour]')
-            axis.set_ylabel('Airmass')
-            limtxdat = [np.amin(timedelt), np.amax(timedelt)]
-            axis.set_title(strgtitl)
-            axis.set_xlim(limtxdat)
-            axis.set_ylim([1., 2.])
-            path = gdat.pathimag + 'airmass_%s.%s' % (strgsamp, gdat.strgplotextn)
-            print('Writing to %s...' % path)
-            plt.savefig(path)
-            
-            # plot altitude
-            figr, axis = plt.subplots(figsize=(4, 4))
-            axis.plot(timedelt, objtcoorsunnalaznigh.alt, color='orange', label='Sun')
-            axis.plot(timedelt, objtcoormoonalaznigh.alt, color='gray', label='Moon')
-            axis.plot(timedelt, objtcoorplanalaznigh.alt, color='blue', label=gdat.dictpoplfilt['weakmass'][namelablsamp][n])
-            axis.fill_between(timedelt, 0, 90, objtcoorsunnalaznigh.alt < -0*u.deg, color='0.5', zorder=0)
-            axis.fill_between(timedelt, 0, 90, objtcoorsunnalaznigh.alt < -18*u.deg, color='k', zorder=0)
-            axis.fill_between(timedelt, 0, 90, (massairr > 2.) | (massairr < 1.), color='r', alpha=0.3, zorder=0)
-            axis.legend(loc='upper left')
-            plt.ylim([0, 90])
-            axis.set_title(strgtitl)
-            axis.set_xlim(limtxdat)
-            axis.set_xlabel('Hours from EDT Midnight')
-            axis.set_ylabel('Altitude [deg]')
-            
-            path = gdat.pathimag + 'altitude_%s.%s' % (strgsamp, gdat.strgplotextn)
-            print('Writing to %s...' % path)
-            plt.savefig(path)
-
 
     # store features on disc
     for k in gdat.indxpopl:
