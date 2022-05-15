@@ -893,14 +893,18 @@ def init( \
             listscalfeatfilt[k].append(listscalfeat[k][n])
         
         if len(listsampfilt[k]) == 0:
-            print('k')
-            print(k)
-            print('gdat.indxfeat[k]')
-            summgene(gdat.indxfeat[k])
             print('gdat.listnamepopl')
             print(gdat.listnamepopl)
             print('listnamefeat')
             print(listnamefeat)
+            print('k')
+            print(k)
+            print('gdat.indxfeat[k]')
+            summgene(gdat.indxfeat[k])
+            print('gdat.listnamepopl[k]')
+            print(gdat.listnamepopl[k])
+            print('listnamefeat[k]')
+            print(listnamefeat[k])
             raise Exception('')
 
         listsampfilt[k] = np.vstack(listsampfilt[k]).T
