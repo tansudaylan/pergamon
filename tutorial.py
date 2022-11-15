@@ -8,10 +8,15 @@ def cnfg_toii(strgextn):
     all features in the TOI Catalog with all subpopulations
     '''
     
+    #listtypeland = ['English']
+    listtypeland = ['Turkish']
+    
     typeanls = 'toii' + strgextn
-    pergamon.init( \
-                 typeanls=typeanls, \
-                 )
+    for typelang in listtypeland:
+        pergamon.init( \
+                      typeanls=typeanls, \
+                      typelang=typelang, \
+                     )
     
 
 def cnfg_exar(strgextn):
@@ -19,20 +24,24 @@ def cnfg_exar(strgextn):
     all features in the NASA Exoplanet Archive with all subpopulations
     '''
     
+    #listtypeland = ['English']
+    listtypeland = ['Turkish']
+    
     typeanls = 'exar' + strgextn
-    pergamon.init( \
-                 typeanls=typeanls, \
-                 typelang='Turkish', \
-                 )
+    for typelang in listtypeland:
+        pergamon.init( \
+                      typeanls=typeanls, \
+                      typelang=typelang, \
+                     )
     
 
-def cnfg_psys():
+def cnfg_plan():
     '''
     Explore features of planetary systems
     '''
    
     pergamon.init( \
-                 typeanls='psys'
+                 typeanls='plan'
                  )
 
 
@@ -66,13 +75,13 @@ def cnfg_supntess():
                  )
     
 
-def cnfg_qtce():
+def cnfg_autovett():
     '''
     Features of QLP TCEs
     '''
     
     pergamon.init( \
-                 'qtce'
+                 'autovett'
                  )
         
 
