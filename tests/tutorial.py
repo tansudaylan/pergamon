@@ -8,13 +8,15 @@ def cnfg_toii(strgextn):
     all features in the TOI Catalog with all subpopulations
     '''
     
-    #listtypeland = ['English']
-    listtypeland = ['Turkish']
+    listtypeland = ['English']
+    #listtypeland = ['Turkish']
     
+    listnamefeatcumu = ['yearaler', 'yeardisc']
     typeanls = 'toii' + strgextn
     for typelang in listtypeland:
         pergamon.init( \
                       typeanls=typeanls, \
+                      listnamefeatcumu=listnamefeatcumu, \
                       typelang=typelang, \
                      )
     
@@ -24,13 +26,16 @@ def cnfg_exar(strgextn):
     all features in the NASA Exoplanet Archive with all subpopulations
     '''
     
-    #listtypeland = ['English']
-    listtypeland = ['Turkish']
+    listtypeland = ['English']
+    #listtypeland = ['Turkish']
+    
+    listnamefeatcumu = ['yearaler', 'yeardisc']
     
     typeanls = 'exar' + strgextn
     for typelang in listtypeland:
         pergamon.init( \
                       typeanls=typeanls, \
+                      listnamefeatcumu=listnamefeatcumu, \
                       typelang=typelang, \
                      )
     
