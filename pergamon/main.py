@@ -427,8 +427,8 @@ def init( \
         ## with transit detections
         dictindxexar['hostsunl'] = np.where((gdat.dictpopl['totl']['tmptstar'] > 5500.) & (gdat.dictpopl['totl']['tmptstar'] < 6000.))[0]
         
-        # planets with habitable insolation
-        dictindxexar['insohabi'] = np.where((gdat.dictpopl['totl']['inso'] > 0.7) & (gdat.dictpopl['totl']['inso'] < 1.1))[0]
+        # planets with habitable irradiation
+        dictindxexar['irrahabi'] = np.where((gdat.dictpopl['totl']['irra'] > 0.7) & (gdat.dictpopl['totl']['irra'] < 1.1))[0]
         
         # planets with good measured radii and masses
         for strg in ['radi', 'mass']:
@@ -452,14 +452,20 @@ def init( \
         # young
         dictindxexar['yong'] = np.where(gdat.dictpopl['totl']['tagestar'] < 0.5)[0]
 
-        # low insolation
-        dictindxexar['insoloww'] = np.where(gdat.dictpopl['totl']['inso'] < 10.)[0]
+        # low irradiation
+        dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'] < 10.)[0]
 
-        # medium insolation
-        dictindxexar['insomedi'] = np.where((gdat.dictpopl['totl']['inso'] > 10.) & (gdat.dictpopl['totl']['inso'] < 1000.))[0]
+        # medium irradiation
+        dictindxexar['irramedi'] = np.where((gdat.dictpopl['totl']['irra'] > 10.) & (gdat.dictpopl['totl']['irra'] < 100.))[0]
 
-        # high insolation
-        dictindxexar['insohigh'] = np.where(gdat.dictpopl['totl']['inso'] > 1000.)[0]
+        # high irradiation
+        dictindxexar['irrahigh'] = np.where((gdat.dictpopl['totl']['irra'] > 100.) & (gdat.dictpopl['totl']['irra'] < 1000.))[0]
+
+        # very high irradiation
+        dictindxexar['irravrhi'] = np.where((gdat.dictpopl['totl']['irra'] > 1000.) & (gdat.dictpopl['totl']['irra'] < 10000.))[0]
+        
+        # extreme irradiation
+        dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'] > 10000.)[0]
         
         ## with RV detection
         dictindxexar['deteradv'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Radial Velocity')[0]
@@ -1097,16 +1103,16 @@ def init( \
             #gdat.listdictlablcolrpopl.append(dict())
             #gdat.listtitlcomp.append('Exoplanets')
             #gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
-            #gdat.listdictlablcolrpopl[-1]['insohabi'] = ['Habitable zone', 'green']
+            #gdat.listdictlablcolrpopl[-1]['irrahabi'] = ['Habitable zone', 'green']
             #gdat.listboolcompexcl.append(False)
             # 
-            #gdat.listdictlablcolrpopl.append(dict())
-            #gdat.listtitlcomp.append('Exoplanets')
-            #gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
-            #gdat.listdictlablcolrpopl[-1]['insoloww'] = ['Low irradiation', 'g']
-            #gdat.listdictlablcolrpopl[-1]['insomedi'] = ['Medium irradiation', 'firebrick']
-            #gdat.listdictlablcolrpopl[-1]['insohigh'] = ['High irradiation', 'b']
-            #gdat.listboolcompexcl.append(False)
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
+            #gdat.listdictlablcolrpopl[-1]['irramedi'] = ['Low irradiation', 'g']
+            gdat.listdictlablcolrpopl[-1]['irrahigh'] = ['Low irradiation', 'b']
+            gdat.listdictlablcolrpopl[-1]['irravrhi'] = ['Low irradiation', 'r']
+            gdat.listdictlablcolrpopl[-1]['irraexhi'] = ['Low irradiation', 'g']
+            gdat.listboolcompexcl.append(True)
              
         if gdat.typeanls.startswith('autovett'):
             
@@ -1261,19 +1267,6 @@ def init( \
 
     gdat.indxpopl = np.arange(gdat.numbpopl)
     
-    if gdat.booldiag:
-        if gdat.numbpopl != len(gdat.listtitlcomp):
-            print('')
-            print('')
-            print('')
-            print('gdat.listnamepopl')
-            print(gdat.listnamepopl)
-            print('gdat.numbpopl')
-            print(gdat.numbpopl)
-            print('gdat.listtitlcomp')
-            print(gdat.listtitlcomp)
-            raise Exception('')
-
     listnamefeat = [[] for k in gdat.indxpopl]
     gdat.indxfeat = [[] for k in gdat.indxpopl]
     
@@ -1354,7 +1347,7 @@ def init( \
                                                                                  
                                                                                  'radiplan', 'tmptplan', 'rvelsemapred', \
                                                                                  'pericomp', 'periplan', 'duratran', 'dcyc', 'depttrancomp', \
-                                                                                 'inso', \
+                                                                                 'irra', \
                                                                                  'tsmm', 'esmm', \
                                                                                  
                                                                                  'yearaler', 'toii', 's2nr', \
@@ -1369,11 +1362,11 @@ def init( \
                                                                                  'declstar', 'rascstar', 'laecstar', 'loecstar', \
                                                                                  'radistar', 'massstar', 'metastar', 'loggstar', \
                                                                                  'tagetar', 'distsyst', 'numbplantranstar', 'tagestar', \
-                                                                                 'vmagsyst', 'periplan', \
+                                                                                 'vmagsyst', 'periplan', 'densplan', \
                                                                                  'yeardisc', \
                                                                                  'radiplan', 'tmptplan', \
                                                                                  'pericomp', 'duratran', 'dcyc', 'depttrancomp', \
-                                                                                 'inso', \
+                                                                                 'irra', \
                                                                                  'tsmm', 'esmm', \
                                                                                  ]:
                 boolgood = True
@@ -1443,8 +1436,8 @@ def init( \
     listnamefeat = listnamefeatfilt
     
     # list of pairs of feature names to be skipped
-    if 'tmptplan' in listnamefeat and 'inso' in listnamefeat:
-        gdat.listnamefeatskip = [['tmptplan', 'inso']]
+    if 'tmptplan' in listnamefeat and 'irra' in listnamefeat:
+        gdat.listnamefeatskip = [['tmptplan', 'irra']]
     else:
         gdat.listnamefeatskip = None
     
