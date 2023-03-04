@@ -452,20 +452,32 @@ def init( \
         # young
         dictindxexar['yong'] = np.where(gdat.dictpopl['totl']['tagestar'] < 0.5)[0]
 
+        # terrestrial mass
+        dictindxexar['massterr'] = np.where(gdat.dictpopl['totl']['massplan'] < 10.)[0]
+
+        # less massive than Neptune
+        dictindxexar['masslnep'] = np.where((gdat.dictpopl['totl']['massplan'] > 10.) & (gdat.dictpopl['totl']['massplan'] < 18.))[0]
+
+        # less massive than Jupiter
+        dictindxexar['massljup'] = np.where((gdat.dictpopl['totl']['massplan'] > 18.) & (gdat.dictpopl['totl']['massplan'] < 300.))[0]
+
+        # more massive than Jupiter
+        dictindxexar['massmjup'] = np.where((gdat.dictpopl['totl']['massplan'] > 300.) & (gdat.dictpopl['totl']['massplan'] < 14 * 300.))[0]
+
         # low irradiation
-        dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'] < 10.)[0]
+        dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'] < 3.)[0]
 
         # medium irradiation
-        dictindxexar['irramedi'] = np.where((gdat.dictpopl['totl']['irra'] > 10.) & (gdat.dictpopl['totl']['irra'] < 100.))[0]
+        dictindxexar['irramedi'] = np.where((gdat.dictpopl['totl']['irra'] > 3.) & (gdat.dictpopl['totl']['irra'] < 30.))[0]
 
         # high irradiation
-        dictindxexar['irrahigh'] = np.where((gdat.dictpopl['totl']['irra'] > 100.) & (gdat.dictpopl['totl']['irra'] < 1000.))[0]
+        dictindxexar['irrahigh'] = np.where((gdat.dictpopl['totl']['irra'] > 30.) & (gdat.dictpopl['totl']['irra'] < 300.))[0]
 
         # very high irradiation
-        dictindxexar['irravrhi'] = np.where((gdat.dictpopl['totl']['irra'] > 1000.) & (gdat.dictpopl['totl']['irra'] < 10000.))[0]
+        dictindxexar['irravrhi'] = np.where((gdat.dictpopl['totl']['irra'] > 300.) & (gdat.dictpopl['totl']['irra'] < 3000.))[0]
         
         # extreme irradiation
-        dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'] > 10000.)[0]
+        dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'] > 3000.)[0]
         
         ## with RV detection
         dictindxexar['deteradv'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Radial Velocity')[0]
@@ -1108,10 +1120,18 @@ def init( \
             # 
             gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('Exoplanets')
-            #gdat.listdictlablcolrpopl[-1]['irramedi'] = ['Low irradiation', 'g']
-            gdat.listdictlablcolrpopl[-1]['irrahigh'] = ['Low irradiation', 'b']
-            gdat.listdictlablcolrpopl[-1]['irravrhi'] = ['Low irradiation', 'r']
-            gdat.listdictlablcolrpopl[-1]['irraexhi'] = ['Low irradiation', 'g']
+            gdat.listdictlablcolrpopl[-1]['massterr'] = ['Terrestrial-mass', 'orange']
+            gdat.listdictlablcolrpopl[-1]['masslnep'] = ['Less massive than Neptune', 'b']
+            gdat.listdictlablcolrpopl[-1]['massljup'] = ['Less massive than Jupiter', 'r']
+            gdat.listdictlablcolrpopl[-1]['massmjup'] = ['More massive than Jupiter', 'g']
+            gdat.listboolcompexcl.append(True)
+             
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
+            #gdat.listdictlablcolrpopl[-1]['irramedi'] = ['Medium irradiation', 'g']
+            gdat.listdictlablcolrpopl[-1]['irrahigh'] = ['High irradiation', 'b']
+            gdat.listdictlablcolrpopl[-1]['irravrhi'] = ['Very high irradiation', 'r']
+            gdat.listdictlablcolrpopl[-1]['irraexhi'] = ['Extreme irradiation', 'g']
             gdat.listboolcompexcl.append(True)
              
         if gdat.typeanls.startswith('autovett'):
@@ -1362,7 +1382,7 @@ def init( \
                                                                                  'declstar', 'rascstar', 'laecstar', 'loecstar', \
                                                                                  'radistar', 'massstar', 'metastar', 'loggstar', \
                                                                                  'tagetar', 'distsyst', 'numbplantranstar', 'tagestar', \
-                                                                                 'vmagsyst', 'periplan', 'densplan', \
+                                                                                 'vmagsyst', 'periplan', 'densplan', 'massplan', \
                                                                                  'yeardisc', \
                                                                                  'radiplan', 'tmptplan', \
                                                                                  'pericomp', 'duratran', 'dcyc', 'depttrancomp', \
@@ -1667,30 +1687,33 @@ def init( \
             for m in range(2):
                 
                 if m == 0:
-                    path = gdat.pathimag
+                    pathbase = gdat.pathimag
                     boolmakelegd = True
                 else:
-                    path = gdat.pathimag + 'without_legend/'
+                    pathbase = gdat.pathimag + 'without_legend/'
                     boolmakelegd = False
                 
-                tdpy.plot_grid(path, strgplot, gdat.listsampcomm, gdat.listlablfeatcomm, boolplothistodim=True, boolplotpair=boolplotpair, \
-                           boolpoplexcl=boolpoplexcl, \
-                           boolplottria=False, \
-                           listnamefeatcumu=listnamefeatcumu, \
-                           typeplottdim=typeplottdim, \
-                           typefileplot=typefileplot, \
-                           lablnumbsamp=gdat.lablnumbsamp, \
-                           listlablsamp=gdat.listlablsampcomm, \
-                           lablsampgene=gdat.lablsampgene, \
-                           listnamefeatskip=gdat.listnamefeatskip, \
-                           boolmakelegd=boolmakelegd, \
-                           listnameordrpair=gdat.listnameordrpair, \
-                           listnamepara=gdat.listnamefeatcomm, \
-                           listscalpara=gdat.listscalfeatcomm, \
-                           listlablpopl=gdat.listlablpoplcomm[e], \
-                           listcolrpopl=gdat.listcolrpoplcomm[e], \
-                           titl=gdat.listtitlcomp[e], \
-                           )
+                tdpy.plot_grid(gdat.listsampcomm, gdat.listlablfeatcomm, \
+                               strgplot=strgplot, \
+                               pathbase=pathbase, \
+                               boolplothistodim=True, boolplotpair=boolplotpair, \
+                               boolpoplexcl=boolpoplexcl, \
+                               boolplottria=False, \
+                               listnamefeatcumu=listnamefeatcumu, \
+                               typeplottdim=typeplottdim, \
+                               typefileplot=typefileplot, \
+                               lablnumbsamp=gdat.lablnumbsamp, \
+                               listlablsamp=gdat.listlablsampcomm, \
+                               lablsampgene=gdat.lablsampgene, \
+                               listnamefeatskip=gdat.listnamefeatskip, \
+                               boolmakelegd=boolmakelegd, \
+                               listnameordrpair=gdat.listnameordrpair, \
+                               listnamepara=gdat.listnamefeatcomm, \
+                               listscalpara=gdat.listscalfeatcomm, \
+                               listlablpopl=gdat.listlablpoplcomm[e], \
+                               listcolrpopl=gdat.listcolrpoplcomm[e], \
+                               titl=gdat.listtitlcomp[e], \
+                              )
             
         
         if gdat.typeanls == 'cosc' or gdat.typeanls == 'plan':
