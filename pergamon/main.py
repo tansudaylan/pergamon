@@ -8,6 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import ephesos
+import chalcedon
 import miletos
 import tdpy
 from tdpy import summgene 
@@ -297,8 +298,8 @@ def init( \
         # get population features
         if gdat.typeanls.startswith('exar'):
             # features of confirmed exoplanets
-            gdat.dictpopl['totl'] = ephesos.retr_dictexar()
-            gdat.dictpopl['totl']['noistess'] = ephesos.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
+            gdat.dictpopl['totl'] = chalcedon.retr_dictexar()
+            gdat.dictpopl['totl']['noistess'] = chalcedon.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
             
         if gdat.typeanls == 'cosc' or gdat.typeanls == 'psys' or gdat.typeanls == 'plan':
             
@@ -357,9 +358,9 @@ def init( \
                 
                 # calculate photometric precision for the star population
                 if typeinst.startswith('tess'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = ephesos.retr_noistess(gdat.dictpopl[namepoplcomptran]['tmag'])
+                    gdat.dictpopl[namepoplcomptran]['nois'] = chalcedon.retr_noistess(gdat.dictpopl[namepoplcomptran]['tmag'])
                 elif typeinst.startswith('lsst'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = ephesos.retr_noislsst(gdat.dictpopl[namepoplcomptran]['rmag'])
+                    gdat.dictpopl[namepoplcomptran]['nois'] = chalcedon.retr_noislsst(gdat.dictpopl[namepoplcomptran]['rmag'])
             
                 # expected BLS signal detection efficiency
                 if typeinst.startswith('lsst'):
@@ -383,24 +384,24 @@ def init( \
                 
                 #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5) & booldeteusam
                 indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5)
-                ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'tranposi', indx)
+                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'tranposi', indx)
 
                 # expected non-detections
                 #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5) | (~booldeteusam)
                 indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5)
-                ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'trannega', indx)
+                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'trannega', indx)
 
         if gdat.typeanls.startswith('toii'):
             # features of TOIs
-            gdat.dictpopl['totl'] = ephesos.retr_dicttoii()
+            gdat.dictpopl['totl'] = chalcedon.retr_dicttoii()
 
         if gdat.typeanls.startswith('hosttoii'):
             # features of hosts of TOIs
-            gdat.dictpopl['totl'] = ephesos.retr_dicthostplan('toii')
+            gdat.dictpopl['totl'] = chalcedon.retr_dicthostplan('toii')
         
         if gdat.typeanls.startswith('hostexar'):
             # features of hosts of exoplanets on NASA Exoplanet Archive
-            gdat.dictpopl['totl'] = ephesos.retr_dicthostplan('exar')
+            gdat.dictpopl['totl'] = chalcedon.retr_dicthostplan('exar')
     else:
         if gdat.lablnumbsamp is None and gdat.lablsampgene is None:
             print('')
@@ -464,6 +465,16 @@ def init( \
         # more massive than Jupiter
         dictindxexar['massmjup'] = np.where((gdat.dictpopl['totl']['massplan'] > 300.) & (gdat.dictpopl['totl']['massplan'] < 14 * 300.))[0]
 
+        # more massive than Jupiter
+        dictindxexar['massgianloww'] = np.where((gdat.dictpopl['totl']['radiplan'] > 10.) & \
+                                                    (gdat.dictpopl['totl']['massplan'] > 300. * 0.4) & (gdat.dictpopl['totl']['massplan'] < 300. * 1.))[0]
+        dictindxexar['massgianmedi'] = np.where((gdat.dictpopl['totl']['radiplan'] > 10.) & \
+                                                    (gdat.dictpopl['totl']['massplan'] > 300. * 1.) & (gdat.dictpopl['totl']['massplan'] < 300. * 2.))[0]
+        dictindxexar['massgianhigh'] = np.where((gdat.dictpopl['totl']['radiplan'] > 10.) & \
+                                                    (gdat.dictpopl['totl']['massplan'] > 300. * 2.) & (gdat.dictpopl['totl']['massplan'] < 300. * 4.))[0]
+        dictindxexar['massgianvhig'] = np.where((gdat.dictpopl['totl']['radiplan'] > 10.) & \
+                                                    (gdat.dictpopl['totl']['massplan'] > 300. * 4.) & (gdat.dictpopl['totl']['massplan'] < 300 * 13.))[0]
+
         # low irradiation
         dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'] < 3.)[0]
 
@@ -522,8 +533,8 @@ def init( \
         #else:
         #    pass
         #indx = np.where(gdat.dictpopl['tran'][''] < 30.)[0]
-        #ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tugg', 'tugg', indx)
-        #ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
+        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tugg', 'tugg', indx)
+        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
         
         ## with weak mass
         sigm = gdat.dictpopl['totl']['massplan'] / gdat.dictpopl['totl']['stdvmassplan']
@@ -637,7 +648,7 @@ def init( \
             for nameseco in ['fstr', 'fstrprms', 'fstre1ms', 'othr']:
                 namepoplsubb = namefrst + nameseco
                 indx = np.intersect1d(dictindxtoii[nameseco], dictindxtoii[namefrst])
-                ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', namepoplsubb, indx)
+                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', namepoplsubb, indx)
             
     if gdat.typeanls.startswith('toii'):
         dictindxtoii['brgttm11rvelsm01'] = np.intersect1d(dictindxtemp['brgttm11'], dictindxtemp['rvelsm01'])
@@ -685,21 +696,21 @@ def init( \
 
     if gdat.typeanls.startswith('exar') or gdat.typeanls.startswith('toii'):
         for strg in dictindxtemp.keys():
-            ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', strg, dictindxtemp[strg])
+            chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', strg, dictindxtemp[strg])
             
     if gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii'):
         
         ## candidate planets in multi systems
         indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] > 1)[0]
-        ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
+        chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
         
         ## confirmed planets in multi systems
         indx = np.where(gdat.dictpopl['conp']['numbplantranstar'] > 1)[0]
-        ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
+        chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
         
         ## singles
         #indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] == 1)[0]
-        #ephesos.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
+        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
     
     if not booldictinpt:
         if gdat.typeanls.startswith('toii'):
@@ -1124,6 +1135,14 @@ def init( \
             gdat.listdictlablcolrpopl[-1]['masslnep'] = ['Less massive than Neptune', 'b']
             gdat.listdictlablcolrpopl[-1]['massljup'] = ['Less massive than Jupiter', 'r']
             gdat.listdictlablcolrpopl[-1]['massmjup'] = ['More massive than Jupiter', 'g']
+            gdat.listboolcompexcl.append(True)
+             
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
+            gdat.listdictlablcolrpopl[-1]['massgianloww'] = ['$0.4 M_J < M < 1 M_J$', 'orange']
+            gdat.listdictlablcolrpopl[-1]['massgianmedi'] = ['$1 M_J   < M < 2 M_J$', 'b']
+            gdat.listdictlablcolrpopl[-1]['massgianhigh'] = ['$2 M_J   < M < 4 M_J$', 'r']
+            gdat.listdictlablcolrpopl[-1]['massgianvhig'] = ['$4 M_J   < M < 13 M_J$', 'g']
             gdat.listboolcompexcl.append(True)
              
             gdat.listdictlablcolrpopl.append(dict())
@@ -1693,7 +1712,9 @@ def init( \
                     pathbase = gdat.pathimag + 'without_legend/'
                     boolmakelegd = False
                 
-                tdpy.plot_grid(gdat.listsampcomm, gdat.listlablfeatcomm, \
+                tdpy.plot_grid( \
+                               gdat.listlablfeatcomm, \
+                               listpara=gdat.listsampcomm, \
                                strgplot=strgplot, \
                                pathbase=pathbase, \
                                boolplothistodim=True, boolplotpair=boolplotpair, \
