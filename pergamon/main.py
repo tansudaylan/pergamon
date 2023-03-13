@@ -14,6 +14,31 @@ import tdpy
 from tdpy import summgene 
 
 
+def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, indx):
+    
+    if isinstance(indx, list):
+        raise Exception('')
+
+    if len(indx) == 0:
+        indx = np.array([], dtype=int)
+
+    dictindxsamp[namepoplinit][namepoplfinl] = indx
+    
+    if indx.size == 0:
+        print('Warning! indx is zero.')
+
+    dictpopl[namepoplfinl] = dict()
+    for name in dictpopl[namepoplinit].keys():
+        
+        if indx.size > 0:
+            dictpopl[namepoplfinl][name] = dictpopl[namepoplinit][name][dictindxsamp[namepoplinit][namepoplfinl]]
+        else:
+            dictpopl[namepoplfinl][name] = np.array([])
+
+    dictnumbsamp[namepoplfinl] = dictindxsamp[namepoplinit][namepoplfinl].size
+    dictindxsamp[namepoplfinl] = dict()
+
+
 def init( \
         # type of analysis
         typeanls, \
@@ -80,8 +105,8 @@ def init( \
         # Boolean flag to diagnose the code using potentially computationally-expensive sanity checks, which may slow down the execution
         booldiag=True, \
 
-        # image path
-        pathimag=None, \
+        # path for visuals
+        pathvisu=None, \
 
         ):
     
@@ -107,16 +132,16 @@ def init( \
         gdat.listtitlcomp = []
     
     # paths
-    if not (gdat.pathbase is not None and gdat.pathimag is None and gdat.pathdata is None or \
-            gdat.pathbase is None and gdat.pathimag is not None and gdat.pathdata is not None or \
-            gdat.pathbase is None and gdat.pathimag is None and gdat.pathdata is None \
+    if not (gdat.pathbase is not None and gdat.pathvisu is None and gdat.pathdata is None or \
+            gdat.pathbase is None and gdat.pathvisu is not None and gdat.pathdata is not None or \
+            gdat.pathbase is None and gdat.pathvisu is None and gdat.pathdata is None \
            ):
         print('gdat.pathbase')
         print(gdat.pathbase)
         print('gdat.pathdata')
         print(gdat.pathdata)
-        print('gdat.pathimag')
-        print(gdat.pathimag)
+        print('gdat.pathvisu')
+        print(gdat.pathvisu)
         raise Exception('')
     
     print('pergamon initialized...')
@@ -131,16 +156,16 @@ def init( \
     if gdat.pathdata is None:
         gdat.pathdata = gdat.pathbase + 'data/'
     
-    if gdat.pathimag is None:
-        gdat.pathimag = gdat.pathbase + 'imag/'
+    if gdat.pathvisu is None:
+        gdat.pathvisu = gdat.pathbase + 'visuals/'
     os.system('mkdir -p %s' % gdat.pathdata)
-    os.system('mkdir -p %s' % gdat.pathimag)
+    os.system('mkdir -p %s' % gdat.pathvisu)
     
     # settings
     ## plotting
     gdat.numbcyclcolrplot = 300
     gdat.alphraww = 0.2
-    gdat.strgplotextn = 'pdf'
+    gdat.typefileplot = 'pdf'
     ### percentile for zoom plots of relative flux
     gdat.pctlrflx = 95.
     gdat.typefileplot = 'pdf'
@@ -384,12 +409,12 @@ def init( \
                 
                 #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5) & booldeteusam
                 indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5)
-                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'tranposi', indx)
+                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'tranposi', indx)
 
                 # expected non-detections
                 #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5) | (~booldeteusam)
                 indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5)
-                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'trannega', indx)
+                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'trannega', indx)
 
         if gdat.typeanls.startswith('toii'):
             # features of TOIs
@@ -533,8 +558,8 @@ def init( \
         #else:
         #    pass
         #indx = np.where(gdat.dictpopl['tran'][''] < 30.)[0]
-        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tugg', 'tugg', indx)
-        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
+        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tugg', 'tugg', indx)
+        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
         
         ## with weak mass
         sigm = gdat.dictpopl['totl']['massplan'] / gdat.dictpopl['totl']['stdvmassplan']
@@ -648,7 +673,7 @@ def init( \
             for nameseco in ['fstr', 'fstrprms', 'fstre1ms', 'othr']:
                 namepoplsubb = namefrst + nameseco
                 indx = np.intersect1d(dictindxtoii[nameseco], dictindxtoii[namefrst])
-                chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', namepoplsubb, indx)
+                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', namepoplsubb, indx)
             
     if gdat.typeanls.startswith('toii'):
         dictindxtoii['brgttm11rvelsm01'] = np.intersect1d(dictindxtemp['brgttm11'], dictindxtemp['rvelsm01'])
@@ -696,21 +721,21 @@ def init( \
 
     if gdat.typeanls.startswith('exar') or gdat.typeanls.startswith('toii'):
         for strg in dictindxtemp.keys():
-            chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', strg, dictindxtemp[strg])
+            retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', strg, dictindxtemp[strg])
             
     if gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii'):
         
         ## candidate planets in multi systems
         indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] > 1)[0]
-        chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
+        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
         
         ## confirmed planets in multi systems
         indx = np.where(gdat.dictpopl['conp']['numbplantranstar'] > 1)[0]
-        chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
+        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
         
         ## singles
         #indx = np.where(gdat.dictpopl['pcan']['numbplantranstar'] == 1)[0]
-        #chalcedon.retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
+        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
     
     if not booldictinpt:
         if gdat.typeanls.startswith('toii'):
@@ -914,7 +939,7 @@ def init( \
             #axis.set_xlabel('Number of sectors')
             #axis.set_ylabel('N')
             #plt.tight_layout()
-            #path = gdat.pathimag + 'histnumbtsec.%s' % (gdat.strgplotextn)
+            #path = gdat.pathvisu + 'histnumbtsec.%s' % (gdat.typefileplot)
             #print('Writing to %s...' % path)
             #plt.savefig(path)
             #plt.close()
@@ -929,8 +954,6 @@ def init( \
         if gdat.typeanls == 'isob':
             gdat.dictpopl['totl']['nois'] = ephesos.samp_paraorbtsols()
         
-    gdat.listnamepopl = np.array(list(gdat.dictpopl.keys()))
-    
     # first item is becomes the y-axis, the second item becomes the x-axis
     gdat.listnameordrpair = [['radiplan', 'tmptplan']]
 
@@ -1300,17 +1323,40 @@ def init( \
         print('List of dictionaries with labels and colors for the populations (listdictlablcolrpopl) should be provided as input.')
         raise Exception('')
     
+    gdat.listnamepopl = []
+    
+    listnamefeat = []
+    gdat.listnamepopltemp = list(gdat.dictpopl.keys())
+    for k in range(len(gdat.dictpopl)):
+        
+        listnametemp = list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys())
+        if len(listnametemp) > 0 and gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]].size > 0:
+            listnamefeat.append(list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys()))
+            gdat.listnamepopl.append(gdat.listnamepopltemp[k])
+    
+    #gdat.listnamepopl = np.array(gdat.listnamepopl)
     gdat.numbpopl = len(gdat.listnamepopl)
+    
+    print('gdat.numbpopl')
+    print(gdat.numbpopl)
+
     if gdat.numbpopl == 0:
         raise Exception('')
 
     gdat.indxpopl = np.arange(gdat.numbpopl)
     
-    listnamefeat = [[] for k in gdat.indxpopl]
     gdat.indxfeat = [[] for k in gdat.indxpopl]
     
     numbfeat = np.empty(gdat.numbpopl, dtype=int)
     for k in gdat.indxpopl:
+        print('k')
+        print(k)
+        print('gdat.listnamepopl')
+        print(gdat.listnamepopl)
+        print('gdat.dictpopl[gdat.listnamepopl[k]]')
+        print(gdat.dictpopl[gdat.listnamepopl[k]])
+        print('gdat.dictpopl[gdat.listnamepopl[k]].keys()')
+        print(gdat.dictpopl[gdat.listnamepopl[k]].keys())
         listnamefeat[k] = list(gdat.dictpopl[gdat.listnamepopl[k]].keys())
         
         numbfeat[k] = len(listnamefeat[k])
@@ -1324,6 +1370,8 @@ def init( \
             raise Exception('')
         gdat.indxfeat[k] = np.arange(numbfeat[k])
     
+    gdat.listnamepopl = np.array(gdat.listnamepopl)
+
     for k in gdat.indxpopl:
         
         namepopl = gdat.listnamepopl[k]
@@ -1490,6 +1538,13 @@ def init( \
         numbfeat[k] = len(listnamefeat[k])
         gdat.indxfeat[k] = np.arange(numbfeat[k])
         listnamefeat[k] = np.array(listnamefeat[k])
+        if len(listnamefeat[k]) == 0:
+            print('')
+            print('')
+            print('')
+            print('k')
+            print(k)
+            raise Exception('listnamefeat[k] is empty.')
 
     # store features on disc
     print('temp: Skipping storage on the disc')
@@ -1533,6 +1588,8 @@ def init( \
         print(gdat.listdictlablcolrpopl)
         if not gdat.listnamepoplcomm[e][0] in gdat.listnamepopl:
             print('')
+            print('')
+            print('')
             print('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
             print('e')
             print(e)
@@ -1541,6 +1598,13 @@ def init( \
             print('gdat.listnamepopl')
             print(gdat.listnamepopl)
             raise Exception('')
+        print('gdat.listnamepoplcomm[e][0]')
+        print(gdat.listnamepoplcomm[e][0])
+        print('gdat.listnamepopl')
+        print(gdat.listnamepopl)
+        print(type(gdat.listnamepopl))
+        print('np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0]')
+        print(np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0])
         indxfrst = np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0][0]
         
         if gdat.booldiag:
@@ -1628,6 +1692,16 @@ def init( \
                 if booltemp:
                     gdat.listnamefeatcomm.append(namefeat)
             
+            if len(gdat.listnamefeatcomm) == 0:
+                print('')
+                print('')
+                print('')
+                print('listnamefeat')
+                print(listnamefeat)
+                print('gdat.listnamefeatcommtemp')
+                print(gdat.listnamefeatcommtemp)
+                raise Exception('gdat.listnamefeatcomm is empty.')
+
             indxfeatcomm = [[] for u in indxpoplcomm]
             for uu, u in enumerate(indxpoplcomm):
                 # list of feature indcices for each population, which will be plotted together
@@ -1644,12 +1718,6 @@ def init( \
             if gdat.listlablsamp is not None:
                 gdat.listlablsampcomm = [[] for u in indxpoplcomm]
             for uu, u in enumerate(indxpoplcomm):
-                print('indxfeatcomm')
-                print(indxfeatcomm)
-                print('uu, u')
-                print(uu, u)
-                print('indxfeatcomm[uu]')
-                print(indxfeatcomm[uu])
                 gdat.listsampcomm[uu] = listsamp[u][:, indxfeatcomm[uu]]
                 if gdat.listlablsamp is not None:
                     gdat.listlablsampcomm[uu] = gdat.listlablsamp[u]
@@ -1687,9 +1755,9 @@ def init( \
                 print('%d samples in %s.' % (numbsamppopl[uu], gdat.listnamepoplcomm[e][uu]))
             print('')
 
-            strgplot = ''
+            strgextn = ''
             for uu, u in enumerate(indxpoplcomm):
-                strgplot += gdat.listnamepoplcomm[e][uu]
+                strgextn += gdat.listnamepoplcomm[e][uu]
             
             print('e')
             print(e)
@@ -1702,20 +1770,25 @@ def init( \
             print('gdat.listtitlcomp[e]')
             print(gdat.listtitlcomp[e])
             print('')
+            
+            if len(indxpoplcomm) > 1:
+                numbiter = 2
+            else:
+                numbiter = 1
 
-            for m in range(2):
+            for m in range(numbiter):
                 
                 if m == 0:
-                    pathbase = gdat.pathimag
+                    pathbase = gdat.pathvisu
                     boolmakelegd = True
                 else:
-                    pathbase = gdat.pathimag + 'without_legend/'
+                    pathbase = gdat.pathvisu + 'without_legend/'
                     boolmakelegd = False
                 
                 tdpy.plot_grid( \
                                gdat.listlablfeatcomm, \
                                listpara=gdat.listsampcomm, \
-                               strgplot=strgplot, \
+                               strgextn=strgextn, \
                                pathbase=pathbase, \
                                boolplothistodim=True, boolplotpair=boolplotpair, \
                                boolpoplexcl=boolpoplexcl, \
@@ -1755,7 +1828,7 @@ def init( \
             #        dictlistvarb[strgtypepopl] += [gdat.dictpopl[dictnamepopl[strgtypepopl]][name]]
             #    dictlistvarb[strgtypepopl] = np.vstack(dictlistvarb[strgtypepopl])
             
-            tdpy.plot_recaprec(gdat.pathimag, dictnamepopl, gdat.dictpopl, \
+            tdpy.plot_recaprec(gdat.pathvisu, dictnamepopl, gdat.dictpopl, \
                             #namepoplcomptotl, listvarbrele, listvarbanls, listnamevarbrele, listnamevarbanls, \
                                                          #listlablvarbrele, listlablvarbanls, \
                                                          #boolposirele=boolposirele, \
@@ -1773,7 +1846,7 @@ def init( \
             #boolreleposi = np.ones(gdat.dictnumbsamp[namepoplcomptranposi], dtype=bool)
             #listvarbrele = np.vstack([gdat.dictpopl[namepoplcomptotl]['masscomp'], gdat.dictpopl[namepoplcomptotl]['pericomp'], gdat.dictpopl[namepoplcomptotl]['inclcomp']]).T
             #listvarbprec = np.vstack([gdat.dictpopl[namepoplcomptranposi]['sdee']]).T
-            #tdpy.plot_recaprec(gdat.pathimag, namepoplcomptranposi, listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
+            #tdpy.plot_recaprec(gdat.pathvisu, namepoplcomptranposi, listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
             #                                                                                listlablvarbrele, listlablvarbprec, boolposirele, boolreleposi)
             #
             ## overall selection
@@ -1784,7 +1857,7 @@ def init( \
             #boolreleposi = np.ones(gdat.dictindxsamp[namepoplcomptran][namepoplcomptranposi].size, dtype=bool)
             #listvarbrele = np.vstack([gdat.dictpopl[namepoplcomptotl]['masscomp'], gdat.dictpopl[namepoplcomptotl]['pericomp'], gdat.dictpopl[namepoplcomptotl]['inclcomp']]).T
             #listvarbprec = np.vstack([gdat.dictpopl[namepoplcomptranposi]['sdee']]).T
-            #tdpy.plot_recaprec(gdat.pathimag, 'totl', listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
+            #tdpy.plot_recaprec(gdat.pathvisu, 'totl', listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
             #                                                             listlablvarbrele, listlablvarbprec, boolposirele, boolreleposi)
             #
 
@@ -1797,7 +1870,7 @@ def init( \
             #listvarbrele = np.vstack([gdat.dictpopl[namepoplcomptotl]['masscomp'], gdat.dictpopl[namepoplcomptotl]['pericomp'], gdat.dictpopl[namepoplcomptotl]['inclcomp']]).T
             #listvarbprec = np.vstack([gdat.dictpopl[namepoplcomptranposi]['masscomp'], gdat.dictpopl[namepoplcomptranposi]['pericomp'], gdat.dictpopl[namepoplcomptranposi]['inclcomp']]).T
             #listvarbdete = []
-            #tdpy.plot_recaprec(gdat.pathimag, 'comp', listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
+            #tdpy.plot_recaprec(gdat.pathvisu, 'comp', listvarbrele, listvarbprec, listnamevarbrele, listnamevarbprec, \
             #                                                             listlablvarbrele, listlablvarbprec, boolposirele, boolreleposi, listvarbdete=listvarbdete)
             
 
@@ -1907,9 +1980,9 @@ def init( \
                     # sample from a linear model
                     numbdata = 2 * numbplan
                     strgextn = '%d_' % b + listnamepara[k]
-                    featpost = tdpy.samp(gdat, pathimag, numbsampwalk, numbsampburnwalk, numbsampburnwalkseco, retr_llik, \
+                    featpost = tdpy.samp(gdat, pathvisu, numbsampwalk, numbsampburnwalk, numbsampburnwalkseco, retr_llik, \
                                                     listlablpara, listscalpara, listminmpara, listmaxmpara, listmeangauspara, liststdvgauspara, \
-                                                        numbdata, strgextn=strgextn, strgplotextn=gdat.strgplotextn, verbtype=0)
+                                                        numbdata, strgextn=strgextn, typefileplot=gdat.typefileplot, verbtype=0)
                     
                     figr, axis = plt.subplots(figsize=(4, 4))
                     xerr = gdat.tempfrststdv
@@ -1940,7 +2013,7 @@ def init( \
                     axis.set_ylabel(listlabl[u])
             
                     plt.tight_layout()
-                    path = pathimag + 'scat_%s_%s_%d.%s' % (listnamefeat[k], listnamefeat[u], b, gdat.strgplotextn)
+                    path = pathvisu + 'scat_%s_%s_%d.%s' % (listnamefeat[k], listnamefeat[u], b, gdat.typefileplot)
                     print('Writing to %s...' % path)
                     plt.savefig(path)
                     plt.close()
