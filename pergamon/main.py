@@ -1632,14 +1632,13 @@ def init( \
                     print('')
                     print('')
                     print('')
-                    print('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
                     print('gdat.listdictlablcolrpopl[e]')
                     print(gdat.listdictlablcolrpopl[e])
                     print('gdat.listnamepoplcomm[e][k]')
                     print(gdat.listnamepoplcomm[e][k])
                     print('gdat.listnamepopl')
                     print(gdat.listnamepopl)
-                    raise Exception('')
+                    raise Exception('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
         
         #for n in gdat.indxfeat[indxfrst]:
         #    print('Feature: %s' % listnamefeat[indxfrst][n])
