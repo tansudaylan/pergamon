@@ -8,7 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 import ephesos
-import chalcedon
+import nicomedia
 import miletos
 import tdpy
 from tdpy import summgene 
@@ -323,8 +323,8 @@ def init( \
         # get population features
         if gdat.typeanls.startswith('exar'):
             # features of confirmed exoplanets
-            gdat.dictpopl['totl'] = chalcedon.retr_dictexar()
-            gdat.dictpopl['totl']['noistess'] = chalcedon.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
+            gdat.dictpopl['totl'] = nicomedia.retr_dictexar()
+            gdat.dictpopl['totl']['noistess'] = nicomedia.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
             
         if gdat.typeanls == 'cosc' or gdat.typeanls == 'psys' or gdat.typeanls == 'plan':
             
@@ -383,9 +383,9 @@ def init( \
                 
                 # calculate photometric precision for the star population
                 if typeinst.startswith('tess'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = chalcedon.retr_noistess(gdat.dictpopl[namepoplcomptran]['tmag'])
+                    gdat.dictpopl[namepoplcomptran]['nois'] = nicomedia.retr_noistess(gdat.dictpopl[namepoplcomptran]['tmag'])
                 elif typeinst.startswith('lsst'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = chalcedon.retr_noislsst(gdat.dictpopl[namepoplcomptran]['rmag'])
+                    gdat.dictpopl[namepoplcomptran]['nois'] = nicomedia.retr_noislsst(gdat.dictpopl[namepoplcomptran]['rmag'])
             
                 # expected BLS signal detection efficiency
                 if typeinst.startswith('lsst'):
@@ -418,15 +418,15 @@ def init( \
 
         if gdat.typeanls.startswith('toii'):
             # features of TOIs
-            gdat.dictpopl['totl'] = chalcedon.retr_dicttoii()
+            gdat.dictpopl['totl'] = nicomedia.retr_dicttoii()
 
         if gdat.typeanls.startswith('hosttoii'):
             # features of hosts of TOIs
-            gdat.dictpopl['totl'] = chalcedon.retr_dicthostplan('toii')
+            gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('toii')
         
         if gdat.typeanls.startswith('hostexar'):
             # features of hosts of exoplanets on NASA Exoplanet Archive
-            gdat.dictpopl['totl'] = chalcedon.retr_dicthostplan('exar')
+            gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('exar')
     else:
         if gdat.lablnumbsamp is None and gdat.lablsampgene is None:
             print('')
@@ -1349,14 +1349,6 @@ def init( \
     
     numbfeat = np.empty(gdat.numbpopl, dtype=int)
     for k in gdat.indxpopl:
-        print('k')
-        print(k)
-        print('gdat.listnamepopl')
-        print(gdat.listnamepopl)
-        print('gdat.dictpopl[gdat.listnamepopl[k]]')
-        print(gdat.dictpopl[gdat.listnamepopl[k]])
-        print('gdat.dictpopl[gdat.listnamepopl[k]].keys()')
-        print(gdat.dictpopl[gdat.listnamepopl[k]].keys())
         listnamefeat[k] = list(gdat.dictpopl[gdat.listnamepopl[k]].keys())
         
         numbfeat[k] = len(listnamefeat[k])
