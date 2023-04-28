@@ -1071,6 +1071,11 @@ def init( \
             gdat.listboolcompexcl.append(True)
         
             gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanet detections via radial velocity')
+            gdat.listdictlablcolrpopl[-1]['deteradv'] = ['Radial velocity', 'deepskyblue']
+            gdat.listboolcompexcl.append(True)
+        
+            gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('Exoplanet detections')
             gdat.listdictlablcolrpopl[-1]['deteimag'] = ['Imaging', 'gold']
             gdat.listdictlablcolrpopl[-1]['detemicr'] = ['Microlensing', 'darkgreen']
@@ -1205,10 +1210,10 @@ def init( \
             
             gdat.dicttoiistat = dict()
             gdat.dictlablcolrtoiistat = dict()
-            gdat.dictlablcolrtoiistat['pcan'] = ['Planet\n Candidate', 'blue']
-            gdat.dictlablcolrtoiistat['fpos'] = ['False\n Positive', 'firebrick']
-            gdat.dictlablcolrtoiistat['knwn'] = ['Known\n Planet', 'orange']
-            gdat.dictlablcolrtoiistat['conp'] = ['Confirmed\n Planet', 'green']
+            gdat.dictlablcolrtoiistat['pcan'] = ['Planet Candidate', 'blue']
+            gdat.dictlablcolrtoiistat['fpos'] = ['False Positive', 'firebrick']
+            gdat.dictlablcolrtoiistat['knwn'] = ['Known Planet', 'orange']
+            gdat.dictlablcolrtoiistat['conp'] = ['Confirmed Planet', 'green']
             gdat.listnametoiistat = list(gdat.dictlablcolrtoiistat.keys())
             
             gdat.listdictlablcolrpopl.append(dict())
@@ -1547,6 +1552,13 @@ def init( \
     #    print(gdat.dictpoplfilt[gdat.listnamepopl[k]].keys())
     #    pd.DataFrame.from_dict(gdat.dictpoplfilt[gdat.listnamepopl[k]]).to_csv(path, header=listlablfeattotl[k], index=False, float_format='%.8g')
     
+    for k in gdat.indxpopl:
+        indxfeatsort = np.argsort(listnamefeat[k])
+        print('Population %s' % gdat.listnamepopl[k])
+        for m in indxfeatsort:
+            print('%s: %s, %s' % (listnamefeat[k][m], listlablfeat[k][m], listscalfeat[k][m]))
+        print('')
+
     if gdat.typelang == 'Turkish':
         for k in gdat.indxpopl:
             for m in gdat.indxfeat[k]:
