@@ -585,9 +585,7 @@ def init( \
             print('Reading from %s...' % path)
             gdat.dictpopl[name] = pd.read_csv(path).to_dict(orient='list')
             for namefeat in gdat.dictpopl[name].keys():
-                gdat.dictpopl[name][namefeat] = np.array(gdat.dictpopl[name][namefeat])[:1000]
-            #[:1000]
-            
+                gdat.dictpopl[name][namefeat] = np.array(gdat.dictpopl[name][namefeat])
 
     if gdat.typeanls.startswith('toii'):
         # subpopulations
