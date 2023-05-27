@@ -296,7 +296,7 @@ def init( \
     if not booldictinpt:
         if gdat.typeanls.startswith('toii'):
             gdat.lablsampgene = 'TOI'
-        elif gdat.typeanls == 'autovett':
+        elif gdat.typeanls == 'vetting':
             gdat.lablsampgene = 'TCE'
         elif gdat.typeanls.startswith('exar'):
             gdat.lablsampgene = 'exoplanet'
@@ -574,18 +574,26 @@ def init( \
         ### high ESM
         dictindxexar['atmoesmm'] = np.where(gdat.dictpopl['totl']['esmm'] > 5.)[0]
 
-    if gdat.typeanls.startswith('autovett'):
+    if gdat.typeanls.startswith('vetting'):
         
-        pathbase = os.environ['DATA'] + '/external/AutomatedVetting/Metrics_Run1/'
+        pathbase = os.environ['DATA'] + '/external/FaintStars/metrics/'
         
-        listname = ['inv', 'obs', 'inj']
+        path = pathbase + 'metrics_sc63.csv'
+        print('Reading from %s...' % path)
+        gdat.dictpopl['totl'] = pd.read_csv(path).to_dict(orient='list')
+        for namefeat in gdat.dictpopl['totl'].keys():
+            gdat.dictpopl['totl'][namefeat] = np.array(gdat.dictpopl['totl'][namefeat])
         
-        for name in listname:
-            path = pathbase + '%s_metrics.csv' % name
-            print('Reading from %s...' % path)
-            gdat.dictpopl[name] = pd.read_csv(path).to_dict(orient='list')
-            for namefeat in gdat.dictpopl[name].keys():
-                gdat.dictpopl[name][namefeat] = np.array(gdat.dictpopl[name][namefeat])
+        gdat.dicttoii = nicomedia.retr_dicttoii()
+        numbtici = gdat.dictpopl['totl']['tic'].size
+        indxtici = np.arange(numbtici)
+        indx = []
+        for k in indxtici:
+            toii = nicomedia.retr_toiitici(gdat.dictpopl['totl']['tic'][k], typeverb=gdat.typeverb, dicttoii=gdat.dicttoii)
+            if toii is not None:    
+                indx.append(k)
+        indx = np.array(indx)
+        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'toii', indx)
 
     if gdat.typeanls.startswith('toii'):
         # subpopulations
@@ -620,6 +628,12 @@ def init( \
         
         ## Faint-star search during PM
         dictindxtoii['fstrprms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['toii'] < 4500)[0])
+        
+        ## Faint-star search during EM1
+        dictindxtoii['fstre1ms'] = np.intersect1d(dictindxtoii['fstr'], np.where((gdat.dictpopl['totl']['toii'] >= 4500) & (gdat.dictpopl['totl']['toii'] < 4500))[0])
+        
+        ## Faint-star search during EM2
+        dictindxtoii['fstre2ms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['toii'] >= 4500)[0])
         
         ## Faint-star search during EM1
         dictindxtoii['fstre1ms'] = np.setdiff1d(dictindxtoii['fstr'], dictindxtoii['fstrprms'])
@@ -970,7 +984,7 @@ def init( \
             gdat.namefeatlablsamp = 'namestar'
         elif gdat.typeanls.startswith('cosc'):
             gdat.namefeatlablsamp = None
-        elif gdat.typeanls.startswith('autovett'):
+        elif gdat.typeanls.startswith('vetting'):
             gdat.namefeatlablsamp = 'tic'
         elif gdat.typeanls.startswith('toii'):
             gdat.namefeatlablsamp = 'nametoii'
@@ -1179,29 +1193,28 @@ def init( \
             gdat.listdictlablcolrpopl[-1]['irraexhi'] = ['Extreme irradiation', 'g']
             gdat.listboolcompexcl.append(True)
              
-        if gdat.typeanls.startswith('autovett'):
+        if gdat.typeanls.startswith('vetting'):
             
             gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('TCEs')
-            gdat.listdictlablcolrpopl[-1]['obs'] = ['Observed', 'g']
-            gdat.listdictlablcolrpopl[-1]['inj'] = ['Injected', 'r']
-            gdat.listdictlablcolrpopl[-1]['inv'] = ['Inverted', 'b']
+            gdat.listdictlablcolrpopl[-1]['totl'] = ['Observed', 'k']
+            gdat.listdictlablcolrpopl[-1]['toii'] = ['Alerted', 'g']
             gdat.listboolcompexcl.append(True)
              
-            gdat.listdictlablcolrpopl.append(dict())
-            gdat.listtitlcomp.append('TCEs')
-            gdat.listdictlablcolrpopl[-1]['obs'] = ['Observed', 'g']
-            gdat.listboolcompexcl.append(True)
-             
-            gdat.listdictlablcolrpopl.append(dict())
-            gdat.listtitlcomp.append('TCEs')
-            gdat.listdictlablcolrpopl[-1]['inj'] = ['Injected', 'r']
-            gdat.listboolcompexcl.append(True)
-             
-            gdat.listdictlablcolrpopl.append(dict())
-            gdat.listtitlcomp.append('TCEs')
-            gdat.listdictlablcolrpopl[-1]['inv'] = ['Inverted', 'b']
-            gdat.listboolcompexcl.append(True)
+            #gdat.listdictlablcolrpopl.append(dict())
+            #gdat.listtitlcomp.append('TCEs')
+            #gdat.listdictlablcolrpopl[-1]['obs'] = ['Observed', 'g']
+            #gdat.listboolcompexcl.append(True)
+            # 
+            #gdat.listdictlablcolrpopl.append(dict())
+            #gdat.listtitlcomp.append('TCEs')
+            #gdat.listdictlablcolrpopl[-1]['inj'] = ['Injected', 'r']
+            #gdat.listboolcompexcl.append(True)
+            # 
+            #gdat.listdictlablcolrpopl.append(dict())
+            #gdat.listtitlcomp.append('TCEs')
+            #gdat.listdictlablcolrpopl[-1]['inv'] = ['Inverted', 'b']
+            #gdat.listboolcompexcl.append(True)
              
             
         if gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii'):
@@ -1453,7 +1466,7 @@ def init( \
                                                                                  ]:
                 boolgood = True
         
-            if gdat.typeanls == 'autovett':
+            if gdat.typeanls == 'vetting':
                 if not listnamefeat[k][n] in ['tic']:
                     boolgood = True
             

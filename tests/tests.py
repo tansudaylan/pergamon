@@ -81,13 +81,13 @@ def cnfg_supntess():
                  )
     
 
-def cnfg_autovett():
+def cnfg_vetting():
     '''
     Features of QLP TCEs
     '''
     
     pergamon.init( \
-                 'autovett'
+                 'vetting'
                  )
         
 
