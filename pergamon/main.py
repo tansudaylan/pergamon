@@ -447,6 +447,9 @@ def init( \
         ## transiting planets
         dictindxexar['tran'] = np.where(gdat.dictpopl['totl']['booltran'])[0]
             
+        ## those in circumbinary systems
+        dictindxexar['cibp'] = np.where(gdat.dictpopl['totl']['boolcibp'])[0]
+        
         ## with transit detections
         dictindxexar['detetran'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Transit')[0]
         
@@ -1083,6 +1086,17 @@ def init( \
             gdat.listboolcompexcl.append(True)
         
             gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
+            gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'black']
+            gdat.listdictlablcolrpopl[-1]['cibp'] = ['Circumbinary', 'deepskyblue']
+            gdat.listboolcompexcl.append(False)
+        
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Circumbinary Planets')
+            gdat.listdictlablcolrpopl[-1]['cibp'] = ['Black', 'deepskyblue']
+            gdat.listboolcompexcl.append(True)
+        
+            gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('Exoplanet detections via radial velocity')
             gdat.listdictlablcolrpopl[-1]['deteradv'] = ['Radial velocity', 'deepskyblue']
             gdat.listboolcompexcl.append(True)
@@ -1459,6 +1473,7 @@ def init( \
                                                                                  'tagetar', 'distsyst', 'numbplantranstar', 'tagestar', \
                                                                                  'vmagsyst', 'periplan', 'densplan', 'massplan', \
                                                                                  'yeardisc', \
+                                                                                 'ecce', 'smaxcomp', 'cosicomp', \
                                                                                  'radiplan', 'tmptplan', \
                                                                                  'pericomp', 'duratran', 'dcyc', 'depttrancomp', \
                                                                                  'irra', \
@@ -1540,7 +1555,7 @@ def init( \
     listscalfeat = [[] for k in gdat.indxpopl]
     for k in gdat.indxpopl:
         # get the labels and scalings for the features in the population
-        listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k])
+        listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], typedist='pc')
         
     for k in gdat.indxpopl:
         numbfeat[k] = len(listnamefeat[k])
