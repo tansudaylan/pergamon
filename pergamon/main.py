@@ -1358,8 +1358,14 @@ def init( \
     listnamefeat = []
     gdat.listnamepopltemp = list(gdat.dictpopl.keys())
     for k in range(len(gdat.dictpopl)):
-        
         listnametemp = list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys())
+        
+        if len(listnametemp) <= 0:
+            print('Warning! There are no features in population: %s' % gdat.listnamepopltemp[k])
+        
+        if gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]].size == 0:
+            print('Warning! There are no samples in the features of population: %s' % gdat.listnamepopltemp[k])
+        
         if len(listnametemp) > 0 and gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]].size > 0:
             listnamefeat.append(list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys()))
             gdat.listnamepopl.append(gdat.listnamepopltemp[k])
@@ -1610,12 +1616,6 @@ def init( \
     for e in indxplotcomm:
         gdat.listnamepoplcomm[e] = list(gdat.listdictlablcolrpopl[e].keys())
         
-        print('e')
-        print(e)
-        print('gdat.listnamepoplcomm')
-        print(gdat.listnamepoplcomm)
-        print('gdat.listdictlablcolrpopl')
-        print(gdat.listdictlablcolrpopl)
         if not gdat.listnamepoplcomm[e][0] in gdat.listnamepopl:
             print('')
             print('')
@@ -1628,13 +1628,6 @@ def init( \
             print('gdat.listnamepopl')
             print(gdat.listnamepopl)
             raise Exception('')
-        print('gdat.listnamepoplcomm[e][0]')
-        print(gdat.listnamepoplcomm[e][0])
-        print('gdat.listnamepopl')
-        print(gdat.listnamepopl)
-        print(type(gdat.listnamepopl))
-        print('np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0]')
-        print(np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0])
         indxfrst = np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0][0]
         
         if gdat.booldiag:
@@ -1781,7 +1774,7 @@ def init( \
                 gdat.listcolrpoplcomm[e].append(gdat.listdictlablcolrpopl[e][gdat.listnamepopl[u]][1])
             
             for uu in range(numbpoplcomm):
-                print('%d samples in %s.' % (numbsamppopl[uu], gdat.listnamepoplcomm[e][uu]))
+                print('%d samples in population: %s.' % (numbsamppopl[uu], gdat.listnamepoplcomm[e][uu]))
             print('')
 
             strgextn = ''
