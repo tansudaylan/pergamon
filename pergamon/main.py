@@ -1610,6 +1610,7 @@ def init( \
     indxplotcomm = np.arange(numbplotcomm)
     gdat.listnamepoplcomm = [[] for e in indxplotcomm]
     gdat.listcolrpoplcomm = [[] for e in indxplotcomm]
+    gdat.listmsizpoplcomm = [[] for e in indxplotcomm]
     gdat.listlablpoplcomm = [[] for e in indxplotcomm]
     
     print('Comparing populations...')
@@ -1632,7 +1633,7 @@ def init( \
         
         if gdat.booldiag:
             for name in gdat.listnamepoplcomm[e]:
-                if len(gdat.listdictlablcolrpopl[e][name]) != 2:
+                if len(gdat.listdictlablcolrpopl[e][name]) != 3:
                     print('')
                     print('')
                     print('name')
@@ -1773,6 +1774,10 @@ def init( \
             for uu, u in enumerate(indxpoplcomm):
                 gdat.listcolrpoplcomm[e].append(gdat.listdictlablcolrpopl[e][gdat.listnamepopl[u]][1])
             
+            # determine the list of marker sizes for compared populations
+            for uu, u in enumerate(indxpoplcomm):
+                gdat.listmsizpoplcomm[e].append(gdat.listdictlablcolrpopl[e][gdat.listnamepopl[u]][2])
+            
             for uu in range(numbpoplcomm):
                 print('%d samples in population: %s.' % (numbsamppopl[uu], gdat.listnamepoplcomm[e][uu]))
             print('')
@@ -1787,6 +1792,8 @@ def init( \
             print(gdat.listnamepoplcomm[e])
             print('gdat.listcolrpoplcomm[e]')
             print(gdat.listcolrpoplcomm[e])
+            print('gdat.listmsizpoplcomm[e]')
+            print(gdat.listmsizpoplcomm[e])
             print('gdat.listtitlcomp')
             print(gdat.listtitlcomp)
             print('gdat.listtitlcomp[e]')
@@ -1828,6 +1835,7 @@ def init( \
                                listscalpara=gdat.listscalfeatcomm, \
                                listlablpopl=gdat.listlablpoplcomm[e], \
                                listcolrpopl=gdat.listcolrpoplcomm[e], \
+                               listmsizpopl=gdat.listmsizpoplcomm[e], \
                                titl=gdat.listtitlcomp[e], \
                               )
             
