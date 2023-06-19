@@ -1631,16 +1631,10 @@ def init( \
             raise Exception('')
         indxfrst = np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0][0]
         
-        if gdat.booldiag:
-            for name in gdat.listnamepoplcomm[e]:
-                if len(gdat.listdictlablcolrpopl[e][name]) != 3:
-                    print('')
-                    print('')
-                    print('name')
-                    print(name)
-                    print('gdat.listdictlablcolrpopl[e][name]')
-                    print(gdat.listdictlablcolrpopl[e][name])
-                    raise Exception('')
+        # add the default marker size if not already provided
+        for name in gdat.listnamepoplcomm[e]:
+            if len(gdat.listdictlablcolrpopl[e][name]) == 2:
+                gdat.listdictlablcolrpopl[e][name] = gdat.listdictlablcolrpopl[e][name] + [1]
 
         # translate
         if gdat.typelang == 'Turkish':
