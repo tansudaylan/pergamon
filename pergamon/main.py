@@ -151,7 +151,7 @@ def init( \
         
     if gdat.pathbase is None:
         gdat.pathbase = os.environ['PERGAMON_DATA_PATH'] + '/'
-    gdat.pathbase += '%s/' % gdat.typeanls
+        gdat.pathbase += '%s/' % gdat.typeanls
     
     print('gdat.pathbase')
     print(gdat.pathbase)
