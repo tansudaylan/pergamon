@@ -22,22 +22,22 @@ def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, 
     if len(indx) == 0:
         indx = np.array([], dtype=int)
 
-    dictindxsamp[namepoplinit][namepoplfinl] = indx
-    
     if indx.size == 0:
         print('Warning! indx is zero.')
 
     dictpopl[namepoplfinl] = dict()
     for name in dictpopl[namepoplinit].keys():
-        
         if indx.size > 0:
-            dictpopl[namepoplfinl][name] = dictpopl[namepoplinit][name][dictindxsamp[namepoplinit][namepoplfinl]]
+            dictpopl[namepoplfinl][name] = dictpopl[namepoplinit][name][indx]
         else:
             dictpopl[namepoplfinl][name] = np.array([])
-
-    dictnumbsamp[namepoplfinl] = dictindxsamp[namepoplinit][namepoplfinl].size
-    dictindxsamp[namepoplfinl] = dict()
-
+    
+    if dictindxsamp is not None:
+        dictindxsamp[namepoplinit][namepoplfinl] = indx
+        dictindxsamp[namepoplfinl] = dict()
+    if dictnumbsamp is not None:
+        dictnumbsamp[namepoplfinl] = indx.size
+    
 
 def init( \
         # type of analysis
@@ -1550,6 +1550,10 @@ def init( \
             print(listnamefeat[k])
             #raise Exception('')
         else:
+            print('listsampfilt[k]')
+            print(listsampfilt[k])
+            print('listnamefeat[k][n]')
+            print(listnamefeat[k][n])
             listsampfilt[k] = np.vstack(listsampfilt[k]).T
     listsamp = listsampfilt
     listnamefeat = listnamefeatfilt
