@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 import pergamon
 
 
-def cnfg_toii(strgextn):
+def cnfg_TOICatalog(strgextn):
     '''
     all features in the TOI Catalog with all subpopulations
     '''
@@ -22,9 +22,9 @@ def cnfg_toii(strgextn):
                      )
     
 
-def cnfg_exar(strgextn):
+def cnfg_NEA(strgextn):
     '''
-    all features in the NASA Exoplanet Archive with all subpopulations
+    exoplanet features in the NASA Exoplanet Archive (NEA)
     '''
     
     listtypeland = ['English']
@@ -40,26 +40,6 @@ def cnfg_exar(strgextn):
                       typelang=typelang, \
                      )
     
-
-def cnfg_plan():
-    '''
-    Explore features of planetary systems
-    '''
-   
-    pergamon.init( \
-                 typeanls='plan'
-                 )
-
-
-def cnfg_cosc():
-    '''
-    Explore features of COSCs
-    '''
-    
-    pergamon.init( \
-                 typeanls='cosc', \
-                 )
-        
 
 def cnfg_ISOB():
     '''

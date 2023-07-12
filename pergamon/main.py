@@ -217,20 +217,6 @@ def init( \
     print('booldictinpt')
     print(booldictinpt)
 
-    if gdat.typeanls == 'micc':
-        # merger-induced core collapse supernovae
-        ## X-ray (2-10 keV) luminosity of J121001+495647 (VT 1210+4956)
-        lumidete = 4e46 # [erg/s]
-        distdete = 100. # [Mpc]
-        # Mpc / AU
-        factmpcsastu = 2.1e11
-        
-        # TESS magnitude
-        magttess = -26.7 - 2.5 * np.log10(lumidete / (100. * factmpcsastu)**2 / 4e34)
-        print('magttess')
-        print(magttess)
-
-    
     if gdat.typeanls == 'obsvjwstexop':
         path = gdat.pathdata + 'obsvjwstexop.csv'
         print('Reading from %s...' % path)
@@ -266,51 +252,23 @@ def init( \
     gdat.dictindxsamp['totl'] = dict()
     gdat.dictnumbsamp = dict()
         
-    if gdat.typeanls == 'cosc' or gdat.typeanls == 'psys' or gdat.typeanls == 'plan':
-            
-        gdat.listcnfgpopl = [ \
-                             #['gdr3m140', 's2nr', 'lsstwfdsnomi10yr'], \
-                             #['gdr3m190', 's2nr', 'lsstwfdsnomi10yr'], \
-                             #['gdr3m140', 's2nr', 'lsstwfdsroll10yr'], \
-                             
-                             ['ttarsc012min', 's2nr', 'tess2min'], \
-                             
-                             #['ttare1ms2min', 's2nr', 'tess2min'], \
-                             #['ttare1ms20sc', 's2nr', 'tess20sc'], \
-                             #['ttare1msffimm140', 's2nr', 'tess10mn'], \
-                             #['ttare1msffimm100', 's2nr', 'tess10mn'], \
-                             #
-                             #['ttare2ms2min', 's2nr', 'tess2min'], \
-                             #['ttare2ms20sc', 's2nr', 'tess20sc'], \
-                             #['ttare2msffimm140', 's2nr', 'tess200s'], \
-                             #
-                             #['ttarprmsffim', 'inre', None], \
-                             #['ttare1msffim', 'inre', None], \
-                             #['ttare2msffimm140', 'inre', None], \
-                            ]
-        
-        gdat.numbiterpopl = len(gdat.listcnfgpopl)
-        gdat.indxiterpopl = np.arange(gdat.numbiterpopl)
-            
     # dictionary for translation
     if gdat.typelang == 'Turkish':
         gdat.dictturk = tdpy.retr_dictturk()
 
     if not booldictinpt:
         if gdat.typeanls.startswith('toii'):
+            # TOI Catalog
             gdat.lablsampgene = 'TOI'
         elif gdat.typeanls == 'vetting':
+            # TOI FaintStars featues
             gdat.lablsampgene = 'TCE'
         elif gdat.typeanls.startswith('exar'):
+            # NASA Exoplanet Archive
             gdat.lablsampgene = 'exoplanet'
-        elif gdat.typeanls == 'plan':
-            gdat.lablsampgene = 'planet'
-        elif gdat.typeanls == 'psys':
-            gdat.lablsampgene = 'planetary system'
         elif gdat.typeanls == 'isob':
+            # NASA JPL Horizons
             gdat.lablsampgene = 'SB'
-        elif gdat.typeanls == 'cosc':
-            gdat.lablsampgene = 'COSC'
         else:
             print('gdat.typeanls')
             print(gdat.typeanls)
@@ -329,107 +287,18 @@ def init( \
             gdat.dictpopl['totl'] = nicomedia.retr_dictexar()
             gdat.dictpopl['totl']['noistess'] = nicomedia.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
             
-        if gdat.typeanls == 'cosc' or gdat.typeanls == 'psys' or gdat.typeanls == 'plan':
-            
-            # type of system
-            if gdat.typeanls == 'plan':
-                typesyst = 'psys'
-            else:
-                typesyst = gdat.typeanls
-            
-            # setup LSST
-            ## time stamps
-            listtimelsst = np.random.rand(1000)
-            
-            ## number of years into the mission
-            numbyear = 10
-            numbsamp = int(numbyear * 100)
-            
-            minmtime = 0.
-            maxmtime = 30.
-            
-            # cadence
-            cade = 2. / 60. / 24. # [days]
-            
-            numbsamp = 1
-            indxsamp = np.arange(numbsamp)
-            
-            print('gdat.listcnfgpopl')
-            print(gdat.listcnfgpopl)
-            for r in gdat.indxiterpopl:
-                # type of target star population
-                typepoplsyst = gdat.listcnfgpopl[r][0]
-                print('typepoplsyst')
-                print(typepoplsyst)
-                
-                # type of estimation
-                ## 's2nr': based on signal-to-noise estimation
-                typeesti = gdat.listcnfgpopl[r][1]
-                print('typeesti')
-                print(typeesti)
-
-                # type of instrument, cadence, and temporal baseline
-                typeinst = gdat.listcnfgpopl[r][2]
-                print('typeinst')
-                print(typeinst)
-                
-                # name of star population
-                strgpoplstar = 'star' + typepoplsyst
-
-                # name of companion population
-                namepoplcomptotl = 'compstar' + typepoplsyst + 'totl'
-                namepoplcomptran = 'compstar' + typepoplsyst + 'tran'
-
-                # get a dictionary with features of stars and their companions
-                gdat.dictpoplstar, gdat.dictpopl, gdat.dictpoplmoon, gdat.dictnumbsamp, gdat.dictindxsamp, indxcompstar, indxmooncompstar = \
-                                                                                                                    ephesos.retr_dictpoplstarcomp(typesyst, typepoplsyst)
-                
-                # calculate photometric precision for the star population
-                if typeinst.startswith('tess'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = nicomedia.retr_noistess(gdat.dictpopl[namepoplcomptran]['tmag'])
-                elif typeinst.startswith('lsst'):
-                    gdat.dictpopl[namepoplcomptran]['nois'] = nicomedia.retr_noislsst(gdat.dictpopl[namepoplcomptran]['rmag'])
-            
-                # expected BLS signal detection efficiency
-                if typeinst.startswith('lsst'):
-                    numbvisi = 1000
-                    gdat.dictpopl[namepoplcomptran]['sdee'] = gdat.dictpopl[namepoplcomptran]['depttrancomp'] / 5. / gdat.dictpopl[namepoplcomptran]['nois'] * \
-                                                                                                         np.sqrt(gdat.dictpopl[namepoplcomptran]['dcyc'] * numbvisi)
-                if typeinst.startswith('tess'):
-                    if gdat.typeanls == 'plan':
-                        print('namepoplcomptran')
-                        print(namepoplcomptran)
-                        gdat.dictpopl[namepoplcomptran]['sdee'] = np.sqrt(gdat.dictpopl[namepoplcomptran]['duratrantotl']) * \
-                                                                            gdat.dictpopl[namepoplcomptran]['depttrancomp'] / gdat.dictpopl[namepoplcomptran]['nois']
-                    if gdat.typeanls == 'cosc':
-                        gdat.dictpopl[namepoplcomptran]['sdee'] = np.sqrt(gdat.dictpopl[namepoplcomptran]['duratrantotl']) * \
-                                                                                                gdat.dictpopl[namepoplcomptran]['amplslen'] \
-                                                                                                                       / gdat.dictpopl[namepoplcomptran]['nois']
-                
-                # expected detections
-                #gdat.dictpopl[namepoplcomptran]['probdeteusam'] = np.exp(-(0.01 * gdat.dictpopl[namepoplcomptran]['pericomp'] * gdat.dictpopl[namepoplcomptran]['numbtsec']))
-                #booldeteusam = np.random.rand(gdat.dictpopl[namepoplcomptran]['pericomp'].size) < gdat.dictpopl[namepoplcomptran]['probdeteusam']
-                
-                #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5) & booldeteusam
-                indx = (gdat.dictpopl[namepoplcomptran]['sdee'] > 5)
-                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'tranposi', indx)
-
-                # expected non-detections
-                #indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5) | (~booldeteusam)
-                indx = (gdat.dictpopl[namepoplcomptran]['sdee'] < 5)
-                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, namepoplcomptran, 'compstar' + typepoplsyst + 'trannega', indx)
-
-        if gdat.typeanls.startswith('toii'):
+        elif gdat.typeanls.startswith('toii'):
             # features of TOIs
             gdat.dictpopl['totl'] = nicomedia.retr_dicttoii()
 
-        if gdat.typeanls.startswith('hosttoii'):
+        elif gdat.typeanls.startswith('hosttoii'):
             # features of hosts of TOIs
             gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('toii')
         
-        if gdat.typeanls.startswith('hostexar'):
+        elif gdat.typeanls.startswith('hostexar'):
             # features of hosts of exoplanets on NASA Exoplanet Archive
             gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('exar')
+    
     else:
         if gdat.lablnumbsamp is None and gdat.lablsampgene is None:
             print('')
@@ -998,8 +867,6 @@ def init( \
             gdat.namefeatlablsamp = 'nameplan'
         elif gdat.typeanls == 'psys':
             gdat.namefeatlablsamp = None
-        elif gdat.typeanls == 'plan':
-            gdat.namefeatlablsamp = None
         elif gdat.typeanls == 'supntess':
             gdat.namefeatlablsamp = 'name'
         elif gdat.typeanls == 'defa':
@@ -1034,48 +901,14 @@ def init( \
             gdat.listdictlablcolrpopl[-1]['cyc2'] = ['Cycle 2', 'gray']
             gdat.listdictlablcolrpopl[-1]['cyc3'] = ['Cycle 3', 'gray']
         
-        if gdat.typeanls == 'cosc' or gdat.typeanls == 'plan':
-            
-            print('gdat.listcnfgpopl')
-            print(gdat.listcnfgpopl)
-            for r in gdat.indxiterpopl:
-                # type of target star population
-                typepoplsyst = gdat.listcnfgpopl[r][0]
-                strgpoplstar = 'star' + typepoplsyst
-                
-                print('typepoplsyst')
-                print(typepoplsyst)
 
-                gdat.listdictlablcolrpopl.append(dict())
-                if gdat.typeanls == 'cosc':
-                    gdat.listtitlcomp.append('Compact Objects with a stellar companion')
-                if gdat.typeanls == 'plan':
-                    gdat.listtitlcomp.append('Planets')
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'totl'] = ['All', 'black']
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'tran'] = ['Transiting', 'blue']
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'tranposi'] = ['Detected', 'green']
-                gdat.listboolcompexcl.append(False)
-                
-                gdat.listdictlablcolrpopl.append(dict())
-                if gdat.typeanls == 'cosc':
-                    gdat.listtitlcomp.append('Compact Objects with a stellar companion')
-                if gdat.typeanls == 'plan':
-                    gdat.listtitlcomp.append('Planets')
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'tran'] = ['Transiting', 'blue']
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'tranposi'] = ['Detected', 'green']
-                gdat.listboolcompexcl.append(False)
-        
-                gdat.listdictlablcolrpopl.append(dict())
-                if gdat.typeanls == 'cosc':
-                    gdat.listtitlcomp.append('Compact Objects with a stellar companion')
-                if gdat.typeanls == 'plan':
-                    gdat.listtitlcomp.append('Planets')
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'trannega'] = ['Not Detected', 'firebrick']
-                gdat.listdictlablcolrpopl[-1]['comp'+strgpoplstar+'tranposi'] = ['Detected', 'green']
-                gdat.listboolcompexcl.append(True)
-        
         if gdat.typeanls.startswith('exar') or gdat.typeanls.startswith('hostexar'):
             
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listdictlablcolrpopl[-1]['totl'] = [None, 'black']
+            #gdat.listdictlablcolrpopl[-1]['deteimag'] = ['Direct imaging', 'deepskyblue']
+            gdat.listboolcompexcl.append(True)
+        
             gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('Exoplanet Detections')
             gdat.listdictlablcolrpopl[-1]['detetran'] = ['Transit', 'blue']
@@ -1494,10 +1327,6 @@ def init( \
                 if not listnamefeat[k][n] in ['tic']:
                     boolgood = True
             
-            if gdat.typeanls == 'plan' or gdat.typeanls == 'cosc':
-                if listnamefeat[k][n] not in ['idenstar', 'booltran']:
-                    boolgood = True
-            
             #if gdat.typeanls == 'plan':
             #and not listnamefeat[k][n] in ['cosi', 'densstar', 'massstar', 'nois', 'pericomp', 'numbcompstarmean', 'radiplan', \
             #                                                                                                            'radistar', 'rmag', 'rsma', 'smax', 'distsyst']:
@@ -1628,14 +1457,14 @@ def init( \
             print('')
             print('')
             print('')
-            print('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
             print('e')
             print(e)
             print('gdat.listnamepoplcomm[e][0]')
             print(gdat.listnamepoplcomm[e][0])
             print('gdat.listnamepopl')
             print(gdat.listnamepopl)
-            raise Exception('')
+            raise Exception('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
+        
         indxfrst = np.where(gdat.listnamepoplcomm[e][0] == gdat.listnamepopl)[0][0]
         
         # add the default marker size if not already provided
@@ -1664,14 +1493,6 @@ def init( \
                     print('gdat.listnamepopl')
                     print(gdat.listnamepopl)
                     raise Exception('One of the populations in gdat.listnamepoplcomm is not available in gdat.listnamepopl')
-        
-        #for n in gdat.indxfeat[indxfrst]:
-        #    print('Feature: %s' % listnamefeat[indxfrst][n])
-        #    for k in range(len(gdat.listnamepoplcomm[e])):
-        #        indxseco = np.where(gdat.listnamepoplcomm[e][k] == gdat.listnamepopl)[0][0]
-        #        summgene(gdat.dictpopl[gdat.listnamepopl[indxseco]][listnamefeat[indxseco][n]], boolslin=True)
-        #    print('')
-        #print('')
         
         numbpoplcomm = len(gdat.listnamepoplcomm[e])
         if numbpoplcomm > 0:
