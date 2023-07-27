@@ -22,11 +22,12 @@ def cnfg_TOICatalog(strgextn):
                      )
     
 
-def cnfg_NEA(strgextn):
+def cnfg_NEA():
     '''
     exoplanet features in the NASA Exoplanet Archive (NEA)
     '''
     
+    strgextn = 'totl'
     listtypeland = ['English']
     #listtypeland = ['Turkish']
     

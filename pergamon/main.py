@@ -1616,12 +1616,20 @@ def init( \
             print(gdat.listcolrpoplcomm[e])
             print('gdat.listmsizpoplcomm[e]')
             print(gdat.listmsizpoplcomm[e])
-            print('gdat.listtitlcomp')
-            print(gdat.listtitlcomp)
-            print('gdat.listtitlcomp[e]')
-            print(gdat.listtitlcomp[e])
-            print('')
             
+            if gdat.booldiag:
+                if len(gdat.listtitlcomp) != numbplotcomm:
+                    print('')
+                    print('')
+                    print('')
+                    print('gdat.listdictlablcolrpopl')
+                    print(gdat.listdictlablcolrpopl)
+                    print('gdat.listtitlcomp')
+                    print(gdat.listtitlcomp)
+                    print('numbplotcomm')
+                    print(numbplotcomm)
+                    raise Exception('len(gdat.listtitlcomp) != numbplotcomm')
+
             if len(indxpoplcomm) > 1:
                 numbiter = 2
             else:
