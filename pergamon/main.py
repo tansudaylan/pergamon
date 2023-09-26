@@ -1380,10 +1380,6 @@ def init( \
             print(listnamefeat[k])
             #raise Exception('')
         else:
-            print('listsampfilt[k]')
-            print(listsampfilt[k])
-            print('listnamefeat[k][n]')
-            print(listnamefeat[k][n])
             listsampfilt[k] = np.vstack(listsampfilt[k]).T
     listsamp = listsampfilt
     listnamefeat = listnamefeatfilt
