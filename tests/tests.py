@@ -4,17 +4,17 @@ matplotlib.use('Agg')
 import pergamon
 
 
-def cnfg_TOICatalog(strgextn):
+def cnfg_TOICatalog():
     '''
     all features in the TOI Catalog with all subpopulations
     '''
     
-    listtypeland = ['English']
-    #listtypeland = ['Turkish']
+    listtypelang = ['English']
+    #listtypelang = ['Turkish']
     
     listnamefeatcumu = ['yearaler', 'yeardisc']
-    typeanls = 'toii' + strgextn
-    for typelang in listtypeland:
+    typeanls = 'toii'
+    for typelang in listtypelang:
         pergamon.init( \
                       typeanls=typeanls, \
                       listnamefeatcumu=listnamefeatcumu, \
@@ -27,18 +27,21 @@ def cnfg_NEA():
     exoplanet features in the NASA Exoplanet Archive (NEA)
     '''
     
-    strgextn = 'totl'
-    listtypeland = ['English']
-    #listtypeland = ['Turkish']
+    #listtypelang = ['English']
+    listtypelang = ['Turkish']
     
     listnamefeatcumu = ['yearaler', 'yeardisc']
     
-    typeanls = 'exar' + strgextn
-    for typelang in listtypeland:
+    dictplotgrid = dict()
+    dictplotgrid['listlablannosamp'] = ['HD 108236 b', 'HD 108236 c', 'HD 108236 d', 'HD 108236 e', 'HD 108236 f']
+
+    typeanls = 'NASA_Exoplanet_Archive'
+    for typelang in listtypelang:
         pergamon.init( \
                       typeanls=typeanls, \
                       listnamefeatcumu=listnamefeatcumu, \
                       typelang=typelang, \
+                      dictplotgrid=dictplotgrid, \
                      )
     
 
