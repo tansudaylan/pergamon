@@ -1793,6 +1793,9 @@ def init( \
                             pathbase = gdat.pathvisu + 'without_legend/'
                             boolmakelegd = False
                         
+                        print('gdat.listlablfeatcomm')
+                        print(gdat.listlablfeatcomm)
+
                         tdpy.plot_grid( \
                                        gdat.listlablfeatcomm, \
                                        listpara=gdat.listsampcomm, \
