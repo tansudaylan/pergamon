@@ -88,7 +88,11 @@ def init( \
         # list of titles for the comparison plots
         listtitlcomp=None, \
         
-        # list of labels for the samples in the populations
+        # labeling of the samples
+        ## name of the feature holding the labels of the samples
+        namefeatlablsamp=None, \
+
+        ## list of labels for the samples in the populations
         listlablsamp=None, \
         
         # type of language for labels and legends
@@ -98,10 +102,6 @@ def init( \
 
         # Boolean flag to sort the populations according to their sizes
         boolsortpoplsize=True, \
-
-        # name of the feature holding the labels of the samples
-        namefeatlablsamp=None, \
-        
 
         # base path
         pathbase=None, \
@@ -201,7 +201,7 @@ def init( \
                 gdat.listdictlablcolrpopl[k] = dict()
                 gdat.listdictlablcolrpopl[k][gdat.listnamepopl[k]] = [gdat.listnamepopl[k], 'k']
                 gdat.listtitlcomp.append('')
-                gdat.listboolcompexcl.append(False)
+                gdat.listboolcompexcl.append(True)
             gdat.typeanls = 'defa'
             gdat.lablsampgene = 'item'
         if gdat.booldiag:
@@ -230,9 +230,10 @@ def init( \
         print('Reading from %s...' % path)
         
         if not booldictinpt:
-            gdat.dictpopl['totl'] = pd.read_csv(path, skiprows=7).to_dict(orient='list')
+            dictpopl = pd.read_csv(path, skiprows=7).to_dict(orient='list')
+            gdat.dictpopl['totl'] = [[], '']
             for namefeat in gdat.dictpopl['totl'].keys():
-                gdat.dictpopl['totl'][namefeat] = np.array(gdat.dictpopl['totl'][namefeat])
+                gdat.dictpopl['totl'][namefeat][0] = np.array(dictpopl[namefeat])
 
 
     if gdat.typeanls == 'supntess':
@@ -289,11 +290,14 @@ def init( \
             gdat.lablnumbsamp = gdat.dictturk[gdat.lablnumbsamp]
             gdat.lablsampgene = gdat.dictturk[gdat.lablsampgene]
         
+        for name in ['noistess']:
+            gdat.dictpopl['totl'][name] = [[], '']
+
         # get population features
         if gdat.typeanls == 'NASA_Exoplanet_Archive':
             # features of confirmed exoplanets
             gdat.dictpopl['totl'] = nicomedia.retr_dictexar()
-            gdat.dictpopl['totl']['noistess'] = nicomedia.retr_noistess(gdat.dictpopl['totl']['vmagsyst'])
+            gdat.dictpopl['totl']['noistess'][0] = nicomedia.retr_noistess(gdat.dictpopl['totl']['vmagsyst'][0])
             
         elif gdat.typeanls.startswith('toii'):
             # features of TOIs
@@ -339,10 +343,10 @@ def init( \
         dictindxexar['detetran'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Transit')[0]
         
         ## with transit detections
-        dictindxexar['hostsunl'] = np.where((gdat.dictpopl['totl']['tmptstar'] > 5500.) & (gdat.dictpopl['totl']['tmptstar'] < 6000.))[0]
+        dictindxexar['hostsunl'] = np.where((gdat.dictpopl['totl']['tmptstar'][0] > 5500.) & (gdat.dictpopl['totl']['tmptstar'][0] < 6000.))[0]
         
         # planets with habitable irradiation
-        dictindxexar['irrahabi'] = np.where((gdat.dictpopl['totl']['irra'] > 0.7) & (gdat.dictpopl['totl']['irra'] < 1.1))[0]
+        dictindxexar['irrahabi'] = np.where((gdat.dictpopl['totl']['irra'][0] > 0.7) & (gdat.dictpopl['totl']['irra'][0] < 1.1))[0]
         
     if gdat.typeanls.startswith('toii'):
         # subpopulations
@@ -368,14 +372,14 @@ def init( \
         for strg in ['radi', 'mass']:
             
             indxelemgood = np.where( \
-                                    (gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)] > 0) \
+                                    (gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)][0] > 0) \
                                     )[0]
                 
             # temp -- this part may not be necessary
             #strgtemp = 'strgrefr%splan' % strg
             #indxexarmeas = []
-            #for n  in range(gdat.dictpopl['totl'][strgtemp].size):
-            #    if not 'Calculated Value' in gdat.dictpopl['totl'][strgtemp][n]:
+            #for n  in range(gdat.dictpopl['totl'][strgtemp][0].size):
+            #    if not 'Calculated Value' in gdat.dictpopl['totl'][strgtemp][0][n]:
             #        indxexarmeas.append(n)
             #indxexarmeas = np.array(indxexarmeas)
             #dictindxexar['prec%s' % strg] = np.setdiff1d(indxexarmeas, indxexargood)
@@ -383,72 +387,72 @@ def init( \
             dictindxtemp['%smeas' % strg] = indxelemgood
             
             # planets with radius or mass precision better than 2 percent
-            dictindxtemp['%sprec10pc' % strg] = np.where(gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)] / gdat.dictpopl['totl']['%s%s' % (strg, strgelem)] < 0.1)[0]
+            dictindxtemp['%sprec10pc' % strg] = np.where(gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)][0] / gdat.dictpopl['totl']['%s%s' % (strg, strgelem)][0] < 0.1)[0]
                 
             # planets with radius or mass precision better than 5 percent
-            dictindxtemp['%sprec05pc' % strg] = np.where(gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)] / gdat.dictpopl['totl']['%s%s' % (strg, strgelem)] < 0.05)[0]
+            dictindxtemp['%sprec05pc' % strg] = np.where(gdat.dictpopl['totl']['stdv%s%s' % (strg, strgelem)][0] / gdat.dictpopl['totl']['%s%s' % (strg, strgelem)][0] < 0.05)[0]
             
     if gdat.typeanls == 'NASA_Exoplanet_Archive':
         # stellar mass less than 0.5
-        dictindxexar['massstar_lt05'] = np.where(gdat.dictpopl['totl']['massstar'] < 0.5)[0]
+        dictindxexar['massstar_lt05'] = np.where(gdat.dictpopl['totl']['massstar'][0] < 0.5)[0]
 
         # stellar mass between 0.5 and 1.0
-        dictindxexar['massstar_0510'] = np.where((gdat.dictpopl['totl']['massstar'] > 0.5) & (gdat.dictpopl['totl']['massstar'] < 1.))[0]
+        dictindxexar['massstar_0510'] = np.where((gdat.dictpopl['totl']['massstar'][0] > 0.5) & (gdat.dictpopl['totl']['massstar'][0] < 1.))[0]
 
         # stellar mass between 1.0 and 2.0
-        dictindxexar['massstar_1020'] = np.where((gdat.dictpopl['totl']['massstar'] > 1.) & (gdat.dictpopl['totl']['massstar'] < 2.))[0]
+        dictindxexar['massstar_1020'] = np.where((gdat.dictpopl['totl']['massstar'][0] > 1.) & (gdat.dictpopl['totl']['massstar'][0] < 2.))[0]
 
         # stellar mass greater than 2.0
-        dictindxexar['massstar_gt20'] = np.where(gdat.dictpopl['totl']['massstar'] > 2.)[0]
+        dictindxexar['massstar_gt20'] = np.where(gdat.dictpopl['totl']['massstar'][0] > 2.)[0]
 
         # stellar age less than 10 Myr
-        dictindxexar['sage_lt10Myr'] = np.where(gdat.dictpopl['totl']['tagestar'] < 0.01)[0]
+        dictindxexar['sage_lt10Myr'] = np.where(gdat.dictpopl['totl']['tagestar'][0] < 0.01)[0]
 
         # stellar age less than 100 Myr
-        dictindxexar['sage_lt100Myr'] = np.where(gdat.dictpopl['totl']['tagestar'] < 0.1)[0]
+        dictindxexar['sage_lt100Myr'] = np.where(gdat.dictpopl['totl']['tagestar'][0] < 0.1)[0]
 
         # stellar age less than 1 Gyr
-        dictindxexar['sage_lt1Gyr'] = np.where(gdat.dictpopl['totl']['tagestar'] < 1.)[0]
+        dictindxexar['sage_lt1Gyr'] = np.where(gdat.dictpopl['totl']['tagestar'][0] < 1.)[0]
 
         # stellar age greater than 1 Gyr
-        dictindxexar['sage_gt1Gyr'] = np.where(gdat.dictpopl['totl']['tagestar'] > 1.)[0]
+        dictindxexar['sage_gt1Gyr'] = np.where(gdat.dictpopl['totl']['tagestar'][0] > 1.)[0]
 
         # terrestrial mass
-        dictindxexar['massterr'] = np.where(gdat.dictpopl['totl'][strgmasselem] < 10.)[0]
+        dictindxexar['massterr'] = np.where(gdat.dictpopl['totl'][strgmasselem][0] < 10.)[0]
 
         # less massive than Neptune
-        dictindxexar['masslnep'] = np.where((gdat.dictpopl['totl'][strgmasselem] > 10.) & (gdat.dictpopl['totl'][strgmasselem] < 18.))[0]
+        dictindxexar['masslnep'] = np.where((gdat.dictpopl['totl'][strgmasselem][0] > 10.) & (gdat.dictpopl['totl'][strgmasselem][0] < 18.))[0]
 
         # less massive than Jupiter
-        dictindxexar['massljup'] = np.where((gdat.dictpopl['totl'][strgmasselem] > 18.) & (gdat.dictpopl['totl'][strgmasselem] < 300.))[0]
+        dictindxexar['massljup'] = np.where((gdat.dictpopl['totl'][strgmasselem][0] > 18.) & (gdat.dictpopl['totl'][strgmasselem][0] < 300.))[0]
 
         # more massive than Jupiter
-        dictindxexar['massmjup'] = np.where((gdat.dictpopl['totl'][strgmasselem] > 300.) & (gdat.dictpopl['totl'][strgmasselem] < 14 * 300.))[0]
+        dictindxexar['massmjup'] = np.where((gdat.dictpopl['totl'][strgmasselem][0] > 300.) & (gdat.dictpopl['totl'][strgmasselem][0] < 14 * 300.))[0]
 
         # more massive than Jupiter
-        dictindxexar['massgianloww'] = np.where((gdat.dictpopl['totl']['radicomp'] > 10.) & \
-                                                    (gdat.dictpopl['totl'][strgmasselem] > 300. * 0.4) & (gdat.dictpopl['totl'][strgmasselem] < 300. * 1.))[0]
-        dictindxexar['massgianmedi'] = np.where((gdat.dictpopl['totl']['radicomp'] > 10.) & \
-                                                    (gdat.dictpopl['totl'][strgmasselem] > 300. * 1.) & (gdat.dictpopl['totl'][strgmasselem] < 300. * 2.))[0]
-        dictindxexar['massgianhigh'] = np.where((gdat.dictpopl['totl']['radicomp'] > 10.) & \
-                                                    (gdat.dictpopl['totl'][strgmasselem] > 300. * 2.) & (gdat.dictpopl['totl'][strgmasselem] < 300. * 4.))[0]
-        dictindxexar['massgianvhig'] = np.where((gdat.dictpopl['totl']['radicomp'] > 10.) & \
-                                                    (gdat.dictpopl['totl'][strgmasselem] > 300. * 4.) & (gdat.dictpopl['totl'][strgmasselem] < 300 * 13.))[0]
+        dictindxexar['massgianloww'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 10.) & \
+                                                    (gdat.dictpopl['totl'][strgmasselem][0] > 300. * 0.4) & (gdat.dictpopl['totl'][strgmasselem][0] < 300. * 1.))[0]
+        dictindxexar['massgianmedi'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 10.) & \
+                                                    (gdat.dictpopl['totl'][strgmasselem][0] > 300. * 1.) & (gdat.dictpopl['totl'][strgmasselem][0] < 300. * 2.))[0]
+        dictindxexar['massgianhigh'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 10.) & \
+                                                    (gdat.dictpopl['totl'][strgmasselem][0] > 300. * 2.) & (gdat.dictpopl['totl'][strgmasselem][0] < 300. * 4.))[0]
+        dictindxexar['massgianvhig'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 10.) & \
+                                                    (gdat.dictpopl['totl'][strgmasselem][0] > 300. * 4.) & (gdat.dictpopl['totl'][strgmasselem][0] < 300 * 13.))[0]
 
         # low irradiation
-        dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'] < 3.)[0]
+        dictindxexar['irraloww'] = np.where(gdat.dictpopl['totl']['irra'][0] < 3.)[0]
 
         # medium irradiation
-        dictindxexar['irramedi'] = np.where((gdat.dictpopl['totl']['irra'] > 3.) & (gdat.dictpopl['totl']['irra'] < 30.))[0]
+        dictindxexar['irramedi'] = np.where((gdat.dictpopl['totl']['irra'][0] > 3.) & (gdat.dictpopl['totl']['irra'][0] < 30.))[0]
 
         # high irradiation
-        dictindxexar['irrahigh'] = np.where((gdat.dictpopl['totl']['irra'] > 30.) & (gdat.dictpopl['totl']['irra'] < 300.))[0]
+        dictindxexar['irrahigh'] = np.where((gdat.dictpopl['totl']['irra'][0] > 30.) & (gdat.dictpopl['totl']['irra'][0] < 300.))[0]
 
         # very high irradiation
-        dictindxexar['irravrhi'] = np.where((gdat.dictpopl['totl']['irra'] > 300.) & (gdat.dictpopl['totl']['irra'] < 3000.))[0]
+        dictindxexar['irravrhi'] = np.where((gdat.dictpopl['totl']['irra'][0] > 300.) & (gdat.dictpopl['totl']['irra'][0] < 3000.))[0]
         
         # extreme irradiation
-        dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'] > 3000.)[0]
+        dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'][0] > 3000.)[0]
         
         ## with RV detection
         dictindxexar['deteradv'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Radial Velocity')[0]
@@ -497,7 +501,7 @@ def init( \
         #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
         
         ## with weak mass
-        sigm = gdat.dictpopl['totl'][strgmasselem] / gdat.dictpopl['totl']['stdvmass%s' % strgelem]
+        sigm = gdat.dictpopl['totl'][strgmasselem][0] / gdat.dictpopl['totl']['stdvmass%s' % strgelem][0]
         dictindxexar['weakmass'] = np.where((sigm < 5.) & (sigm > 0.))[0]
         
         ## discovered by TESS
@@ -505,9 +509,9 @@ def init( \
         
         ## good atmospheric characterization potential
         ### high TSM
-        dictindxexar['atmotsmm'] = np.where(gdat.dictpopl['totl']['tsmm'] > 50.)[0]
+        dictindxexar['atmotsmm'] = np.where(gdat.dictpopl['totl']['tsmm'][0] > 50.)[0]
         ### high ESM
-        dictindxexar['atmoesmm'] = np.where(gdat.dictpopl['totl']['esmm'] > 5.)[0]
+        dictindxexar['atmoesmm'] = np.where(gdat.dictpopl['totl']['esmm'][0] > 5.)[0]
 
     if gdat.typeanls.startswith('vetting'):
         
@@ -515,9 +519,10 @@ def init( \
         
         path = pathbase + 'metrics_sc63.csv'
         print('Reading from %s...' % path)
-        gdat.dictpopl['totl'] = pd.read_csv(path).to_dict(orient='list')
+        dictpopl = pd.read_csv(path).to_dict(orient='list')
         for namefeat in gdat.dictpopl['totl'].keys():
-            gdat.dictpopl['totl'][namefeat] = np.array(gdat.dictpopl['totl'][namefeat])
+            gdat.dictpopl['totl'][namefeat] = [[], '']
+            gdat.dictpopl['totl'][namefeat][0] = np.array(dictpopl[namefeat])
         
         gdat.dicttoii = nicomedia.retr_dicttoii()
         numbtici = gdat.dictpopl['totl']['tic'].size
@@ -566,31 +571,31 @@ def init( \
         dictindxtoii['othr'] = np.setdiff1d(indxtoii, dictindxtoii['fstr'])
         
         ## close to the ecliptic
-        dictindxtoii['eclp'] = np.where(abs(gdat.dictpopl['totl']['laecstar']) < 10.)[0]
+        dictindxtoii['eclp'] = np.where(abs(gdat.dictpopl['totl']['laecstar'][0]) < 10.)[0]
         
         ## distant
-        dictindxtoii['dist'] = np.where(gdat.dictpopl['totl']['distsyst'] > 300.)[0]
+        dictindxtoii['dist'] = np.where(gdat.dictpopl['totl']['distsyst'][0] > 300.)[0]
         
         ## super-Neptunes
-        dictindxtoii['larg'] = np.where(gdat.dictpopl['totl']['radicomp'] > 4.)[0]
+        dictindxtoii['larg'] = np.where(gdat.dictpopl['totl']['radicomp'][0] > 4.)[0]
         
         ## large predicted RV semi-amplitude
-        dictindxtoii['rvelsm01'] = np.where(gdat.dictpopl['totl']['rvelsemapred'] > 1.)[0]
+        dictindxtoii['rvelsm01'] = np.where(gdat.dictpopl['totl']['rvelsemapred'][0] > 1.)[0]
         
     
     if gdat.typeanls == 'NASA_Exoplanet_Archive' or gdat.typeanls.startswith('toii'):
         
         ## host brighter than the given TESS magnitude
-        dictindxtemp['brgttm11'] = np.where(gdat.dictpopl['totl']['tmagsyst'] < 11.)[0]
+        dictindxtemp['brgttm11'] = np.where(gdat.dictpopl['totl']['tmagsyst'][0] < 11.)[0]
             
         ## radii smaller than four times the Earth radius
-        dictindxtemp['smaller-than-4RE'] = np.where(gdat.dictpopl['totl']['radicomp'] < 4.)[0]
+        dictindxtemp['smaller-than-4RE'] = np.where(gdat.dictpopl['totl']['radicomp'][0] < 4.)[0]
         
         ## radii between one and four times the Earth radius
-        dictindxtemp['between-1RE-4RE'] = np.where((gdat.dictpopl['totl']['radicomp'] > 1.) & (gdat.dictpopl['totl']['radicomp'] < 4.))[0]
+        dictindxtemp['between-1RE-4RE'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 1.) & (gdat.dictpopl['totl']['radicomp'][0] < 4.))[0]
         
         ## multiple transiting planets
-        dictindxtemp['tranmult'] = np.where(gdat.dictpopl['totl']['numbcomptranstar'] > 1)[0]
+        dictindxtemp['tranmult'] = np.where(gdat.dictpopl['totl']['numbcomptranstar'][0] > 1)[0]
     
     ## intersections of subpopulations
     if gdat.typeanls == 'NASA_Exoplanet_Archive' or gdat.typeanls.startswith('toii'):
@@ -1310,10 +1315,10 @@ def init( \
         if len(listnametemp) <= 0:
             print('Warning! There are no features in population: %s' % gdat.listnamepopltemp[k])
         
-        if gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]].size == 0:
+        if gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]][0].size == 0:
             print('Warning! There are no samples in the features of population: %s' % gdat.listnamepopltemp[k])
         
-        if len(listnametemp) > 0 and gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]].size > 0:
+        if len(listnametemp) > 0 and gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]][0].size > 0:
             listnamefeat.append(list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys()))
             gdat.listnamepopl.append(gdat.listnamepopltemp[k])
     
@@ -1464,15 +1469,17 @@ def init( \
             if listnamefeat[k][n] in ['tici', 'TOIID']:
                 continue
             
-            samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]])
-            
             print('')
+            print('gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]')
+            summgene(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]])
+            
             print('gdat.typeanls')
             print(gdat.typeanls)
             print('listnamefeat[k][n]')
             print(listnamefeat[k][n])
-            print('type(samptemp[0])')
-            print(type(samptemp[0]))
+            
+            samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]])
+            
             print('samptemp')
             summgene(samptemp)
 
@@ -1505,18 +1512,6 @@ def init( \
     listsamp = listsampfilt
     listnamefeat = listnamefeatfilt
     
-    # list of pairs of feature names to be skipped
-    if 'tmptplan' in listnamefeat and 'irra' in listnamefeat:
-        gdat.listnamefeatskip = [['tmptplan', 'irra']]
-    else:
-        gdat.listnamefeatskip = None
-    
-    listlablfeat = [[] for k in gdat.indxpopl]
-    listscalfeat = [[] for k in gdat.indxpopl]
-    for k in gdat.indxpopl:
-        # get the labels and scalings for the features in the population
-        listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], typedist='pc')
-        
     for k in gdat.indxpopl:
         numbfeat[k] = len(listnamefeat[k])
         gdat.indxfeat[k] = np.arange(numbfeat[k])
@@ -1528,6 +1523,35 @@ def init( \
             print('k')
             print(k)
             raise Exception('listnamefeat[k] is empty.')
+
+    # list of pairs of feature names to be skipped
+    #if 'tmptplan' in listnamefeat and 'irra' in listnamefeat:
+    #    gdat.listnamefeatskip = [['tmptplan', 'irra']]
+    #else:
+    #    gdat.listnamefeatskip = None
+    
+    listlablfeat = [[] for k in gdat.indxpopl]
+    listscalfeat = [[] for k in gdat.indxpopl]
+    for k in gdat.indxpopl:
+        listlablunitforc = [[] for n in range(numbfeat[k])]
+        for n in range(numbfeat[k]):
+            print('listnamefeat[k][n]')
+            print(listnamefeat[k][n])
+            print('gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]]')
+            print(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]])
+            print('')
+            if gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1] != '':
+                listlablunitforc[n] = gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1]
+            else:
+                listlablunitforc[n] = None
+        
+        print('listlablunitforc')
+        print(listlablunitforc)
+        # get the labels and scalings for the features in the population
+        listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], listlablunitforc=listlablunitforc)
+        
+        print('listlablfeat[k]')
+        print(listlablfeat[k])
 
     # store features on disc
     print('temp: Skipping storage on the disc')
@@ -1774,7 +1798,8 @@ def init( \
                                        listpara=gdat.listsampcomm, \
                                        strgextn=strgextn, \
                                        pathbase=pathbase, \
-                                       boolplothistodim=True, boolplotpair=boolplotpair, \
+                                       boolplothistodim=True, \
+                                       boolplotpair=boolplotpair, \
                                        boolpoplexcl=boolpoplexcl, \
                                        boolplottria=False, \
                                        listnamefeatcumu=listnamefeatcumu, \
@@ -1783,7 +1808,7 @@ def init( \
                                        lablnumbsamp=gdat.lablnumbsamp, \
                                        listlablsamp=gdat.listlablsampcomm, \
                                        lablsampgene=gdat.lablsampgene, \
-                                       listnamefeatskip=gdat.listnamefeatskip, \
+                                       #listnamefeatskip=gdat.listnamefeatskip, \
                                        boolmakelegd=boolmakelegd, \
                                        listnameordrpair=gdat.listnameordrpair, \
                                        listnamepara=gdat.listnamefeatcomm, \

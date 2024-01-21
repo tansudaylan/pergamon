@@ -27,8 +27,8 @@ def cnfg_NEA():
     exoplanet features in the NASA Exoplanet Archive (NEA)
     '''
     
-    #listtypelang = ['English']
-    listtypelang = ['Turkish']
+    listtypelang = ['English']
+    #listtypelang = ['Turkish']
     
     listnamefeatcumu = ['yearaler', 'yeardisc']
     
