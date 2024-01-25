@@ -191,6 +191,19 @@ def init( \
         if gdat.listdictlablcolrpopl is not None:
             raise Exception('')
     else:
+        
+        # check if gdat.dictpopl is properly defined, whose leaves should be a list of two items (of values and labels, respectively)
+        if gdat.booldiag:
+            for name in gdat.dictpopl:
+                for nameseco in gdat.dictpopl[name]:
+                    if len(gdat.dictpopl[name][nameseco]) != 2 or len(gdat.dictpopl[name][nameseco][1]) > 0 and not isinstance(gdat.dictpopl[name][nameseco][1][1], str):
+                        print('gdat.dictpopl[name][nameseco]')
+                        print(gdat.dictpopl[name][nameseco])
+                        print('')
+                        print('')
+                        print('')
+                        raise Exception('gdat.dictpopl is not properly defined.')
+
         booldictinpt = True
         
         if gdat.listdictlablcolrpopl is None:
@@ -204,6 +217,18 @@ def init( \
                 gdat.listboolcompexcl.append(True)
             gdat.typeanls = 'defa'
             gdat.lablsampgene = 'item'
+        else:
+            for thisdict in gdat.listdictlablcolrpopl:
+                for name in thisdict.keys():
+                    if len(thisdict[name]) != 2 or not isinstance(thisdict[name][0], str) or not isinstance(thisdict[name][0], str):
+                        print('')
+                        print('')
+                        print('')
+                        print('gdat.listdictlablcolrpopl')
+                        print(gdat.listdictlablcolrpopl)
+                        raise Exception('Bad listdictlablcolrpopl.')
+
+
         if gdat.booldiag:
             if gdat.listboolcompexcl is None:
                 raise Exception('')
@@ -1534,25 +1559,42 @@ def init( \
     listscalfeat = [[] for k in gdat.indxpopl]
     for k in gdat.indxpopl:
         listlablunitforc = [[] for n in range(numbfeat[k])]
+        
+        # check if gdat.dictpoplfilt is properly defined, whose leaves should be a list of two items (of values and labels, respectively)
+        if gdat.booldiag:
+            for name in gdat.dictpoplfilt:
+                for nameseco in gdat.dictpoplfilt[name]:
+                    if len(gdat.dictpoplfilt[name][nameseco]) != 2 or len(gdat.dictpoplfilt[name][nameseco][1]) > 0 and not isinstance(gdat.dictpoplfilt[name][nameseco][1][1], str):
+                        print('gdat.dictpoplfilt[name][nameseco]')
+                        print(gdat.dictpoplfilt[name][nameseco])
+                        print('')
+                        print('')
+                        print('')
+                        raise Exception('gdat.dictpoplfilt is not properly defined.')
+
+
         for n in range(numbfeat[k]):
-            print('listnamefeat[k][n]')
-            print(listnamefeat[k][n])
-            print('gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]]')
-            print(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]])
-            print('')
             if gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1] != '':
                 listlablunitforc[n] = gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1]
             else:
                 listlablunitforc[n] = None
+            
+            if gdat.booldiag:
+                if not isinstance(listlablunitforc[n], str):
+                    print('')
+                    print('')
+                    print('')
+                    print('listnamefeat[k][n]')
+                    print(listnamefeat[k][n])
+                    print('gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]]')
+                    print(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]])
+                    print('listlablunitforc')
+                    print(listlablunitforc)
+                    raise Exception('')
         
-        print('listlablunitforc')
-        print(listlablunitforc)
         # get the labels and scalings for the features in the population
         listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], listlablunitforc=listlablunitforc)
         
-        print('listlablfeat[k]')
-        print(listlablfeat[k])
-
     # store features on disc
     print('temp: Skipping storage on the disc')
     #for k in gdat.indxpopl:
@@ -1793,8 +1835,15 @@ def init( \
                             pathbase = gdat.pathvisu + 'without_legend/'
                             boolmakelegd = False
                         
-                        print('gdat.listlablfeatcomm')
-                        print(gdat.listlablfeatcomm)
+                        if gdat.booldiag:
+                            for item in gdat.listlablfeatcomm:
+                                if len(item) != 2 or not isinstance(item[0], str) or not isinstance(item[1], str):
+                                    print('')
+                                    print('')
+                                    print('')
+                                    print('gdat.listlablfeatcomm')
+                                    print(gdat.listlablfeatcomm)
+                                    raise Exception('Bad listlablfeatcomm.')
 
                         tdpy.plot_grid( \
                                        gdat.listlablfeatcomm, \
