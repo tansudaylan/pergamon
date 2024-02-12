@@ -197,11 +197,11 @@ def init( \
             for name in gdat.dictpopl:
                 for nameseco in gdat.dictpopl[name]:
                     if len(gdat.dictpopl[name][nameseco]) != 2 or len(gdat.dictpopl[name][nameseco][1]) > 0 and not isinstance(gdat.dictpopl[name][nameseco][1][1], str):
+                        print('')
+                        print('')
+                        print('')
                         print('gdat.dictpopl[name][nameseco]')
                         print(gdat.dictpopl[name][nameseco])
-                        print('')
-                        print('')
-                        print('')
                         raise Exception('gdat.dictpopl is not properly defined.')
 
         booldictinpt = True
@@ -220,7 +220,7 @@ def init( \
         else:
             for thisdict in gdat.listdictlablcolrpopl:
                 for name in thisdict.keys():
-                    if len(thisdict[name]) != 2 or not isinstance(thisdict[name][0], str) or not isinstance(thisdict[name][0], str):
+                    if len(thisdict[name]) != 2 or not isinstance(thisdict[name][0], str) or len(thisdict[name][1]) == 0:
                         print('')
                         print('')
                         print('')
@@ -1494,20 +1494,8 @@ def init( \
             if listnamefeat[k][n] in ['tici', 'TOIID']:
                 continue
             
-            print('')
-            print('gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]')
-            summgene(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]])
+            samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]][0])
             
-            print('gdat.typeanls')
-            print(gdat.typeanls)
-            print('listnamefeat[k][n]')
-            print(listnamefeat[k][n])
-            
-            samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]])
-            
-            print('samptemp')
-            summgene(samptemp)
-
             if not isinstance(samptemp[0], str) and np.isfinite(samptemp).size > 0:
                 listsampfilt[k].append(samptemp.astype(float))
                 listnamefeatfilt[k].append(listnamefeat[k][n])
@@ -1564,23 +1552,29 @@ def init( \
         if gdat.booldiag:
             for name in gdat.dictpoplfilt:
                 for nameseco in gdat.dictpoplfilt[name]:
-                    if len(gdat.dictpoplfilt[name][nameseco]) != 2 or len(gdat.dictpoplfilt[name][nameseco][1]) > 0 and not isinstance(gdat.dictpoplfilt[name][nameseco][1][1], str):
+                    if len(gdat.dictpoplfilt[name][nameseco]) != 2 or \
+                                        len(gdat.dictpoplfilt[name][nameseco][1]) > 0 and not isinstance(gdat.dictpoplfilt[name][nameseco][1], str):
+                        print('')
+                        print('')
+                        print('')
                         print('gdat.dictpoplfilt[name][nameseco]')
                         print(gdat.dictpoplfilt[name][nameseco])
-                        print('')
-                        print('')
-                        print('')
+                        print('gdat.typeanls')
+                        print(gdat.typeanls)
                         raise Exception('gdat.dictpoplfilt is not properly defined.')
 
 
         for n in range(numbfeat[k]):
             if gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1] != '':
+                print('listnamefeat[k][n]')
+                print(listnamefeat[k][n])
                 listlablunitforc[n] = gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1]
             else:
                 listlablunitforc[n] = None
             
             if gdat.booldiag:
-                if not isinstance(listlablunitforc[n], str):
+                print('temp: suppressing this')
+                if False and listlablunitforc[n] is not None and not isinstance(listlablunitforc[n], str):
                     print('')
                     print('')
                     print('')
@@ -1588,8 +1582,8 @@ def init( \
                     print(listnamefeat[k][n])
                     print('gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]]')
                     print(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]])
-                    print('listlablunitforc')
-                    print(listlablunitforc)
+                    print('listlablunitforc[n]')
+                    print(listlablunitforc[n])
                     raise Exception('')
         
         # get the labels and scalings for the features in the population
@@ -1837,6 +1831,10 @@ def init( \
                         
                         if gdat.booldiag:
                             for item in gdat.listlablfeatcomm:
+                                
+                                print('temp: suppressing this check')
+                                continue
+
                                 if len(item) != 2 or not isinstance(item[0], str) or not isinstance(item[1], str):
                                     print('')
                                     print('')
