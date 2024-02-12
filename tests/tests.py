@@ -55,16 +55,6 @@ def cnfg_ISOB():
                  )
     
 
-def cnfg_supntess():
-    '''
-    features of supernovae in the TESS FOV
-    '''
-    
-    pergamon.init( \
-                  typeanls='supntess'
-                 )
-    
-
 def cnfg_vetting():
     '''
     Features of QLP TCEs
