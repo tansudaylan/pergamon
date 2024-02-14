@@ -1563,18 +1563,14 @@ def init( \
                         print(gdat.typeanls)
                         raise Exception('gdat.dictpoplfilt is not properly defined.')
 
-
         for n in range(numbfeat[k]):
             if gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1] != '':
-                print('listnamefeat[k][n]')
-                print(listnamefeat[k][n])
                 listlablunitforc[n] = gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1]
             else:
                 listlablunitforc[n] = None
             
             if gdat.booldiag:
-                print('temp: suppressing this')
-                if False and listlablunitforc[n] is not None and not isinstance(listlablunitforc[n], str):
+                if listlablunitforc[n] is not None and not isinstance(listlablunitforc[n], str):
                     print('')
                     print('')
                     print('')
@@ -1589,6 +1585,17 @@ def init( \
         # get the labels and scalings for the features in the population
         listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], listlablunitforc=listlablunitforc)
         
+        if booldiag:
+            for m in gdat.indxfeat[k]:
+                if isinstance(listlablfeat[k][m][1], list):
+                    print('')
+                    print('')
+                    print('')
+                    print('listlablfeat[k]')
+                    print(listlablfeat[k])
+                    raise Exception('')
+        
+
     # store features on disc
     print('temp: Skipping storage on the disc')
     #for k in gdat.indxpopl:
@@ -1604,6 +1611,13 @@ def init( \
         for m in indxfeatsort:
             print('%s: %s, %s' % (listnamefeat[k][m], listlablfeat[k][m], listscalfeat[k][m]))
         print('')
+
+    if booldiag:
+        for k in gdat.indxpopl:
+            for m in indxfeatsort:
+                if isinstance(listlablfeat[k][m][1], list):
+                    raise Exception('')
+        
 
     if gdat.typelang == 'Turkish':
         for k in gdat.indxpopl:
@@ -1795,11 +1809,15 @@ def init( \
                 print(e)
                 print('gdat.listnamepoplcomm[e]')
                 print(gdat.listnamepoplcomm[e])
+                print('gdat.listlablpoplcomm[e]')
+                print(gdat.listlablpoplcomm[e])
                 print('gdat.listcolrpoplcomm[e]')
                 print(gdat.listcolrpoplcomm[e])
                 print('gdat.listmsizpoplcomm[e]')
                 print(gdat.listmsizpoplcomm[e])
-                
+                print('gdat.listlablfeatcomm')
+                print(gdat.listlablfeatcomm)
+
                 if gdat.booldiag:
                     if len(gdat.listtitlcomp) != numbplotcomm:
                         print('')
@@ -1831,10 +1849,6 @@ def init( \
                         
                         if gdat.booldiag:
                             for item in gdat.listlablfeatcomm:
-                                
-                                print('temp: suppressing this check')
-                                continue
-
                                 if len(item) != 2 or not isinstance(item[0], str) or not isinstance(item[1], str):
                                     print('')
                                     print('')
