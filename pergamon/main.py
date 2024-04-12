@@ -24,13 +24,37 @@ def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, 
 
     if indx.size == 0:
         print('Warning! indx is zero.')
-
+    
+    print('indx')
+    summgene(indx)
+    
     dictpopl[namepoplfinl] = dict()
-    for name in dictpopl[namepoplinit].keys():
+    for namefeat in dictpopl[namepoplinit].keys():
+        dictpopl[namepoplfinl][namefeat] = [[], dictpopl[namepoplinit][namefeat][1]]
+            
+        print('namepoplinit')
+        print(namepoplinit)
+        print('namefeat')
+        print(namefeat)
+        print('dictpopl[namepoplinit][namefeat]')
+        summgene(dictpopl[namepoplinit][namefeat])
+        
+        if not isinstance(dictpopl[namepoplinit][namefeat], list) or len(dictpopl[namepoplinit][namefeat]) != 2:
+            print('')
+            print('')
+            print('')
+            print('namepoplinit')
+            print(namepoplinit)
+            print('namefeat')
+            print(namefeat)
+            print('dictpopl[namepoplinit][namefeat]')
+            summgene(dictpopl[namepoplinit][namefeat])
+            raise Exception('dictpopl should have populations of features, where each feature is a two-element list of values (ndarray) and a string for unit')
+        
         if indx.size > 0:
-            dictpopl[namepoplfinl][name] = dictpopl[namepoplinit][name][indx]
+            dictpopl[namepoplfinl][namefeat][0] = dictpopl[namepoplinit][namefeat][0][indx]
         else:
-            dictpopl[namepoplfinl][name] = np.array([])
+            dictpopl[namepoplfinl][namefeat][0] = np.array([])
     
     if dictindxsamp is not None:
         dictindxsamp[namepoplinit][namepoplfinl] = indx
@@ -315,14 +339,10 @@ def init( \
             gdat.lablnumbsamp = gdat.dictturk[gdat.lablnumbsamp]
             gdat.lablsampgene = gdat.dictturk[gdat.lablsampgene]
         
-        for name in ['noistess']:
-            gdat.dictpopl['totl'][name] = [[], '']
-
         # get population features
         if gdat.typeanls == 'NASA_Exoplanet_Archive':
             # features of confirmed exoplanets
             gdat.dictpopl['totl'] = nicomedia.retr_dictexar()
-            gdat.dictpopl['totl']['noistess'][0] = nicomedia.retr_noistess(gdat.dictpopl['totl']['vmagsyst'][0])
             
         elif gdat.typeanls.startswith('toii'):
             # features of TOIs
@@ -335,7 +355,7 @@ def init( \
         elif gdat.typeanls.startswith('hostexar'):
             # features of hosts of exoplanets on NASA Exoplanet Archive
             gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('exar')
-    
+            
     else:
         if gdat.lablnumbsamp is None and gdat.lablsampgene is None:
             print('')
@@ -581,13 +601,13 @@ def init( \
         dictindxtoii['fstr'] = np.array(dictindxtoii['fstr'])
         
         ## Faint-star search during PM
-        dictindxtoii['fstrprms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['TOIID'] < 4500)[0])
+        dictindxtoii['fstrprms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['TOIID'][0] < 4500)[0])
         
         ## Faint-star search during EM1
-        dictindxtoii['fstre1ms'] = np.intersect1d(dictindxtoii['fstr'], np.where((gdat.dictpopl['totl']['TOIID'] >= 4500) & (gdat.dictpopl['totl']['TOIID'] < 4500))[0])
+        dictindxtoii['fstre1ms'] = np.intersect1d(dictindxtoii['fstr'], np.where((gdat.dictpopl['totl']['TOIID'][0] >= 4500) & (gdat.dictpopl['totl']['TOIID'][0] < 4500))[0])
         
         ## Faint-star search during EM2
-        dictindxtoii['fstre2ms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['TOIID'] >= 4500)[0])
+        dictindxtoii['fstre2ms'] = np.intersect1d(dictindxtoii['fstr'], np.where(gdat.dictpopl['totl']['TOIID'][0] >= 4500)[0])
         
         ## Faint-star search during EM1
         dictindxtoii['fstre1ms'] = np.setdiff1d(dictindxtoii['fstr'], dictindxtoii['fstrprms'])
@@ -695,11 +715,11 @@ def init( \
     if gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii'):
         
         ## candidate planets in multi systems
-        indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'] > 1)[0]
+        indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'][0] > 1)[0]
         retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
         
         ## confirmed planets in multi systems
-        indx = np.where(gdat.dictpopl['conp']['numbcomptranstar'] > 1)[0]
+        indx = np.where(gdat.dictpopl['conp']['numbcomptranstar'][0] > 1)[0]
         retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
         
         ## singles
@@ -710,7 +730,7 @@ def init( \
         if gdat.typeanls.startswith('toii'):
             
             # replace BJD with TESS-truncated BJD (TBJD)
-            gdat.dictpopl['totl']['epocmtraplantess'] = gdat.dictpopl['totl']['epocmtra%s' % strgelem] - 2457000
+            gdat.dictpopl['totl']['epocmtraplantess'] = gdat.dictpopl['totl']['epocmtra%s' % strgelem][0] - 2457000
             
             listkeys = list(gdat.dictpopl['totl'].keys())
 
