@@ -65,7 +65,7 @@ def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, 
 
 def init( \
         # type of analysis
-        typeanls, \
+        typeanls=None, \
         
         # dictionary of features of the populations
         dictpopl=None, \
@@ -1355,17 +1355,18 @@ def init( \
             raise Exception('len(gdat.listnamepopltemp) == 0')
 
     for k in range(len(gdat.dictpopl)):
-        listnametemp = list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys())
+        listnamefeattemp = list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys())
         
-        if len(listnametemp) <= 0:
+        if len(listnamefeattemp) <= 0:
             print('Warning! There are no features in population: %s' % gdat.listnamepopltemp[k])
-        
-        if gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]][0].size == 0:
-            print('Warning! There are no samples in the features of population: %s' % gdat.listnamepopltemp[k])
-        
-        if len(listnametemp) > 0 and gdat.dictpopl[gdat.listnamepopltemp[k]][listnametemp[0]][0].size > 0:
-            listnamefeat.append(list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys()))
+        else:
             gdat.listnamepopl.append(gdat.listnamepopltemp[k])
+        
+        for m, namefeat in enumerate(listnamefeattemp):
+            if gdat.dictpopl[gdat.listnamepopltemp[k]][listnamefeattemp[m]][0].size == 0:
+                print('Warning! There are no samples in the feature %s of population %s.' % (listnamefeattemp[m], gdat.listnamepopltemp[k]))
+            else:
+                listnamefeat.append(list(gdat.dictpopl[gdat.listnamepopltemp[k]].keys()))
     
     #gdat.listnamepopl = np.array(gdat.listnamepopl)
     gdat.numbpopl = len(gdat.listnamepopl)
@@ -1516,6 +1517,15 @@ def init( \
             
             samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]][0])
             
+            if gdat.booldiag:
+                if np.isscalar(samptemp) or isinstance(samptemp, np.ndarray) and samptemp.size == 0:
+                    print('')
+                    print('')
+                    print('')
+                    print('samptemp')
+                    print(samptemp)
+                    raise Exception('np.isscalar(samptemp) or len(samptemp) == 0')
+
             if not isinstance(samptemp[0], str) and np.isfinite(samptemp).size > 0:
                 listsampfilt[k].append(samptemp.astype(float))
                 listnamefeatfilt[k].append(listnamefeat[k][n])
@@ -1839,6 +1849,12 @@ def init( \
                 print(gdat.listlablfeatcomm)
 
                 if gdat.booldiag:
+                    if len(gdat.listlablpoplcomm[e]) != len(gdat.listnamepoplcomm[e]):
+                        print('')
+                        print('')
+                        print('')
+                        raise Exception('len(gdat.listlablpoplcomm[e]) != len(gdat.listnamepoplcomm[e])')
+                    
                     if len(gdat.listtitlcomp) != numbplotcomm:
                         print('')
                         print('')
@@ -1863,9 +1879,11 @@ def init( \
                         if m == 0:
                             pathbase = gdat.pathvisu
                             boolmakelegd = typeplottdim == 'scat'
+                            boolplotpies = True
                         else:
                             pathbase = gdat.pathvisu + 'without_legend/'
                             boolmakelegd = False
+                            boolplotpies = False
                         
                         if gdat.booldiag:
                             for item in gdat.listlablfeatcomm:
@@ -1888,6 +1906,7 @@ def init( \
                                        boolplottria=False, \
                                        listnamefeatcumu=listnamefeatcumu, \
                                        typeplottdim=typeplottdim, \
+                                       boolplotpies=boolplotpies, \
                                        typefileplot=typefileplot, \
                                        lablnumbsamp=gdat.lablnumbsamp, \
                                        listlablsamp=gdat.listlablsampcomm, \
