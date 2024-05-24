@@ -14,7 +14,7 @@ import tdpy
 from tdpy import summgene 
 
 
-def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, indx):
+def retr_subp(dictpopl, namepoplinit, namepoplfinl, indx, dictnumbsamp=None, dictindxsamp=None):
     
     if isinstance(indx, list):
         raise Exception('')
@@ -25,19 +25,9 @@ def retr_subp(dictpopl, dictnumbsamp, dictindxsamp, namepoplinit, namepoplfinl, 
     if indx.size == 0:
         print('Warning! indx is zero.')
     
-    print('indx')
-    summgene(indx)
-    
     dictpopl[namepoplfinl] = dict()
     for namefeat in dictpopl[namepoplinit].keys():
         dictpopl[namepoplfinl][namefeat] = [[], dictpopl[namepoplinit][namefeat][1]]
-            
-        print('namepoplinit')
-        print(namepoplinit)
-        print('namefeat')
-        print(namefeat)
-        print('dictpopl[namepoplinit][namefeat]')
-        summgene(dictpopl[namepoplinit][namefeat])
         
         if not isinstance(dictpopl[namepoplinit][namefeat], list) or len(dictpopl[namepoplinit][namefeat]) != 2:
             print('')
@@ -208,6 +198,31 @@ def init( \
         gdat.figrsizeydob = [8., 4.]
         gdat.figrsizeydobskin = [8., 2.5]
     
+    # check inputs
+    if gdat.booldiag:
+        if not isinstance(gdat.dictpopl, dict):
+            print('')
+            print('')
+            print('')
+            raise Exception('not isinstance(gdat.dictpopl, dict)')
+        
+        for namepopl in gdat.dictpopl:
+            if not isinstance(gdat.dictpopl[namepopl], dict):
+                print('')
+                print('')
+                print('')
+                raise Exception('gdat.dictpopl should be a dictionary of dictionaries.')
+            
+            for namefeat in gdat.dictpopl[namepopl]:
+                if not isinstance(gdat.dictpopl[namepopl][namefeat][0], np.ndarray) or gdat.dictpopl[namepopl][namefeat][0].ndim != 1:
+                    print('')
+                    print('')
+                    print('type(gdat.dictpopl[namepopl][namefeat])')
+                    print(type(gdat.dictpopl[namepopl][namefeat]))
+                    print('gdat.dictpopl[namepopl][namefeat]')
+                    print(gdat.dictpopl[namepopl][namefeat])
+                    raise Exception('not isinstance(gdat.dictpopl[namepopl][namefeat], np.ndarray) or gdat.dictpopl[namepopl][namefeat].ndim != 1')
+
     if gdat.dictpopl is None:
         gdat.dictpopl = dict()
         booldictinpt = False
@@ -220,12 +235,20 @@ def init( \
         if gdat.booldiag:
             for name in gdat.dictpopl:
                 for nameseco in gdat.dictpopl[name]:
-                    if len(gdat.dictpopl[name][nameseco]) != 2 or len(gdat.dictpopl[name][nameseco][1]) > 0 and not isinstance(gdat.dictpopl[name][nameseco][1][1], str):
+                    if len(gdat.dictpopl[name][nameseco]) != 2 or len(gdat.dictpopl[name][nameseco][1]) > 0 and not isinstance(gdat.dictpopl[name][nameseco][1], str):
                         print('')
                         print('')
                         print('')
+                        print('name')
+                        print(name)
+                        print('nameseco')
+                        print(nameseco)
                         print('gdat.dictpopl[name][nameseco]')
                         print(gdat.dictpopl[name][nameseco])
+                        print('gdat.dictpopl[name][nameseco][0]')
+                        print(gdat.dictpopl[name][nameseco][0])
+                        print('gdat.dictpopl[name][nameseco][1]')
+                        print(gdat.dictpopl[name][nameseco][1])
                         raise Exception('gdat.dictpopl is not properly defined.')
 
         booldictinpt = True
@@ -379,13 +402,13 @@ def init( \
         
         # create subpopulations
         ## transiting planets
-        dictindxexar['tran'] = np.where(gdat.dictpopl['totl']['booltran'])[0]
+        dictindxexar['tran'] = np.where(gdat.dictpopl['totl']['booltran'][0])[0]
             
         ## those in circumbinary systems
-        dictindxexar['cibp'] = np.where(gdat.dictpopl['totl']['boolcibp'])[0]
+        dictindxexar['cibp'] = np.where(gdat.dictpopl['totl']['boolcibp'][0])[0]
         
         ## with transit detections
-        dictindxexar['detetran'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Transit')[0]
+        dictindxexar['detetran'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Transit')[0]
         
         ## with transit detections
         dictindxexar['hostsunl'] = np.where((gdat.dictpopl['totl']['tmptstar'][0] > 5500.) & (gdat.dictpopl['totl']['tmptstar'][0] < 6000.))[0]
@@ -500,32 +523,32 @@ def init( \
         dictindxexar['irraexhi'] = np.where(gdat.dictpopl['totl']['irra'][0] > 3000.)[0]
         
         ## with RV detection
-        dictindxexar['deteradv'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Radial Velocity')[0]
+        dictindxexar['deteradv'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Radial Velocity')[0]
         
         ## with other detections (other than transit and RVs)
         dictindxexar['deteothr'] = np.where((gdat.dictpopl['totl']['methdisc'] != 'Radial Velocity') & \
                                                                             (gdat.dictpopl['totl']['methdisc'] != 'Transit'))[0]
         
         ## with imaging detection
-        dictindxexar['deteimag'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Imaging')[0]
+        dictindxexar['deteimag'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Imaging')[0]
         
         ## with microlensing detections
-        dictindxexar['detemicr'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Microlensing')[0]
+        dictindxexar['detemicr'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Microlensing')[0]
         
         ## with transit timing variations
-        dictindxexar['detetimetran'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Transit Timing Variations')[0]
+        dictindxexar['detetimetran'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Transit Timing Variations')[0]
         
         ## with eclipse timing variations
-        dictindxexar['detetimeeclp'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Eclipse Timing Variations')[0]
+        dictindxexar['detetimeeclp'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Eclipse Timing Variations')[0]
         
         ## with phase variations
-        dictindxexar['detephas'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Orbital Brightness Modulation')[0]
+        dictindxexar['detephas'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Orbital Brightness Modulation')[0]
         
         ## with astrometry
-        dictindxexar['deteastr'] = np.where(gdat.dictpopl['totl']['methdisc'] == 'Astrometry')[0]
+        dictindxexar['deteastr'] = np.where(gdat.dictpopl['totl']['methdisc'][0] == 'Astrometry')[0]
         
         ## discovered by Kepler Telescope
-        dictindxexar['kepl'] = np.where(gdat.dictpopl['totl']['facidisc'] == 'Kepler')[0]
+        dictindxexar['kepl'] = np.where(gdat.dictpopl['totl']['facidisc'][0] == 'Kepler')[0]
         
         ## Kepler discoveries with precise masses 
         dictindxexar['massprec05pckepl'] = np.intersect1d(dictindxexar['massprec05pc'], dictindxexar['kepl'])
@@ -542,15 +565,15 @@ def init( \
         #else:
         #    pass
         #indx = np.where(gdat.dictpopl['tran'][''] < 30.)[0]
-        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tugg', 'tugg', indx)
-        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'tran', 'trantugg', indx)
+        #retr_subp(gdat.dictpopl, 'tugg', 'tugg', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
+        #retr_subp(gdat.dictpopl, 'tran', 'trantugg', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
         
         ## with weak mass
         sigm = gdat.dictpopl['totl'][strgmasselem][0] / gdat.dictpopl['totl']['stdvmass%s' % strgelem][0]
         dictindxexar['weakmass'] = np.where((sigm < 5.) & (sigm > 0.))[0]
         
         ## discovered by TESS
-        dictindxexar['tess'] = np.where(gdat.dictpopl['totl']['facidisc'] == 'Transiting Exoplanet Survey Satellite (TESS)')[0]
+        dictindxexar['tess'] = np.where(gdat.dictpopl['totl']['facidisc'][0] == 'Transiting Exoplanet Survey Satellite (TESS)')[0]
         
         ## good atmospheric characterization potential
         ### high TSM
@@ -570,28 +593,28 @@ def init( \
             gdat.dictpopl['totl'][namefeat][0] = np.array(dictpopl[namefeat])
         
         gdat.dicttoii = nicomedia.retr_dicttoii()
-        numbtici = gdat.dictpopl['totl']['tic'].size
+        numbtici = gdat.dictpopl['totl']['TICID'].size
         indxtici = np.arange(numbtici)
         indx = []
         for k in indxtici:
-            toii = nicomedia.retr_toiitici(gdat.dictpopl['totl']['tic'][k], typeverb=gdat.typeverb, dicttoii=gdat.dicttoii)
+            toii = nicomedia.retr_toiitici(gdat.dictpopl['totl']['TICID'][k], typeverb=gdat.typeverb, dicttoii=gdat.dicttoii)
             if toii is not None:    
                 indx.append(k)
         indx = np.array(indx)
-        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'toii', indx)
+        retr_subp(gdat.dictpopl, 'totl', 'toii', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
 
     if gdat.typeanls.startswith('toii'):
         ## PC
-        dictindxtoii['pcan'] = np.where(gdat.dictpopl['totl']['typedisptess'] == 'PC')[0]
+        dictindxtoii['pcan'] = np.where(gdat.dictpopl['totl']['typedisptess'][0] == 'PC')[0]
                 
         ## CP
-        dictindxtoii['knwn'] = np.where(gdat.dictpopl['totl']['typedisptess'] == 'KP')[0]
+        dictindxtoii['knwn'] = np.where(gdat.dictpopl['totl']['typedisptess'][0] == 'KP')[0]
         
         ## CP
-        dictindxtoii['conp'] = np.where(gdat.dictpopl['totl']['typedisptess'] == 'CP')[0]
+        dictindxtoii['conp'] = np.where(gdat.dictpopl['totl']['typedisptess'][0] == 'CP')[0]
         
         ## FP
-        dictindxtoii['fpos'] = np.where(gdat.dictpopl['totl']['typedisptess'] == 'EB')[0]
+        dictindxtoii['fpos'] = np.where(gdat.dictpopl['totl']['typedisptess'][0] == 'EB')[0]
         
         ## Faint-star search
         dictindxtoii['fstr'] = []
@@ -631,7 +654,7 @@ def init( \
     if gdat.typeanls == 'NASA_Exoplanet_Archive' or gdat.typeanls.startswith('toii'):
         
         ## host brighter than the given TESS magnitude
-        dictindxtemp['brgttm11'] = np.where(gdat.dictpopl['totl']['tmagsyst'][0] < 11.)[0]
+        dictindxtemp['brgttm11'] = np.where(gdat.dictpopl['totl']['magtsystTESS'][0] < 11.)[0]
             
         ## radii smaller than four times the Earth radius
         dictindxtemp['smaller-than-4RE'] = np.where(gdat.dictpopl['totl']['radicomp'][0] < 4.)[0]
@@ -662,7 +685,7 @@ def init( \
             for nameseco in ['fstr', 'fstrprms', 'fstre1ms', 'othr']:
                 namepoplsubb = namefrst + nameseco
                 indx = np.intersect1d(dictindxtoii[nameseco], dictindxtoii[namefrst])
-                retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', namepoplsubb, indx)
+                retr_subp(gdat.dictpopl, 'totl', namepoplsubb, indx, gdat.dictnumbsamp, gdat.dictindxsamp)
             
     if False and gdat.typeanls.startswith('toii'):
         dictindxtoii['brgttm11rvelsm01'] = np.intersect1d(dictindxtemp['brgttm11'], dictindxtemp['rvelsm01'])
@@ -710,21 +733,21 @@ def init( \
 
     if gdat.typeanls == 'NASA_Exoplanet_Archive' or gdat.typeanls.startswith('toii'):
         for strg in dictindxtemp.keys():
-            retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', strg, dictindxtemp[strg])
+            retr_subp(gdat.dictpopl, 'totl', strg, dictindxtemp[strg], gdat.dictnumbsamp, gdat.dictindxsamp)
             
     if gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii'):
         
         ## candidate planets in multi systems
         indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'][0] > 1)[0]
-        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'pcan', 'pcanmult', indx)
+        retr_subp(gdat.dictpopl, 'pcan', 'pcanmult', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
         
         ## confirmed planets in multi systems
         indx = np.where(gdat.dictpopl['conp']['numbcomptranstar'][0] > 1)[0]
-        retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'conp', 'conpmult', indx)
+        retr_subp(gdat.dictpopl, 'conp', 'conpmult', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
         
         ## singles
-        #indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'] == 1)[0]
-        #retr_subp(gdat.dictpopl, gdat.dictnumbsamp, gdat.dictindxsamp, 'totl', 'pcansing', indx)
+        #indx = np.where(gdat.dictpopl['pcan']['numbcomptranstar'][0] == 1)[0]
+        #retr_subp(gdat.dictpopl, 'totl', 'pcansing', indx, gdat.dictnumbsamp, gdat.dictindxsamp)
     
     if not booldictinpt:
         if gdat.typeanls.startswith('toii'):
@@ -738,7 +761,7 @@ def init( \
             for name in listkeys:
                 if name.startswith('stdv'):
                     del gdat.dictpopl['totl'][name]
-                if name in ['tici', 'epocmtraplan', 'hmagsyst', 'kmagsyst', 'jmagsyst']:
+                if name in ['TICID', 'epocmtraplan', 'hmagsyst', 'kmagsyst', 'jmagsyst']:
                     del gdat.dictpopl['totl'][name]
         
         if gdat.typeanls == 'qtce':
@@ -790,7 +813,7 @@ def init( \
                         continue
                     
                     for n in range(numbfiel):
-                        if listnamevarbfstr[n] == 'tic':
+                        if listnamevarbfstr[n] == 'TICID':
                             valu = int(linesplt[n])
                         else:
                             valu = float(linesplt[n])
@@ -803,7 +826,7 @@ def init( \
                     gdat.dictpopl['ts%02d' % o][namevarbfstr] = np.array(gdat.dictpopl['ts%02d' % o][namevarbfstr]) 
                     #if gdat.dictpopl['ts%02d' % o][namevarbfstr].size == 0:
                     #    raise Exception('')
-                print('%d metrics...' % gdat.dictpopl['ts%02d' % o]['tic'].size)
+                print('%d metrics...' % gdat.dictpopl['ts%02d' % o]['TICID'].size)
             print('')
             
             # read TIC IDs and dispositions
@@ -824,7 +847,7 @@ def init( \
             ticihvettsectemp = [[] for o in indxtsecprms]
             for o in indxtsecprms:
                 for ticihvet in ticihvettsec[o]:
-                    if ticihvet in gdat.dictpopl['ts%02d' % o]['tic']:
+                    if ticihvet in gdat.dictpopl['ts%02d' % o]['TICID']:
                         ticihvettsectemp[o].append(ticihvet)
                 ticihvettsectemp[o] = np.array(ticihvettsectemp[o])
             for o in indxtsecprms:
@@ -834,7 +857,7 @@ def init( \
             print('Merging lists of TIC IDs for targets with metrics...')
             ticiastrtsec = [[] for o in indxtsecprms]
             for o in indxtsecprms:
-                ticiastrtsec[o] = gdat.dictpopl['ts%02d' % o]['tic']
+                ticiastrtsec[o] = gdat.dictpopl['ts%02d' % o]['TICID']
             ticiastrconc = np.concatenate(ticiastrtsec)
             print('Total number of metrics: %d' % ticiastrconc.size)
             ticiastruniq, indxuniq, indxinve, numbtici = np.unique(ticiastrconc, return_index=True, return_inverse=True, return_counts=True)
@@ -878,7 +901,7 @@ def init( \
                     indxtseclast = indxtsecthis[-1]
 
                     ## find the metric index of the target in the last sector
-                    indx = np.where(gdat.dictpopl['ts%02d' % indxtseclast]['tic'] == tici)[0]
+                    indx = np.where(gdat.dictpopl['ts%02d' % indxtseclast]['TICID'] == tici)[0]
                     
                     if indx.size == 0:
                         raise Exception('')
@@ -966,7 +989,7 @@ def init( \
         elif gdat.typeanls.startswith('cosc'):
             gdat.namefeatlablsamp = None
         elif gdat.typeanls.startswith('vetting'):
-            gdat.namefeatlablsamp = 'tic'
+            gdat.namefeatlablsamp = 'TICID'
         elif gdat.typeanls.startswith('toii'):
             gdat.namefeatlablsamp = 'nametoii'
         elif gdat.typeanls == 'NASA_Exoplanet_Archive':
@@ -1449,7 +1472,7 @@ def init( \
             boolgood = False
             if (gdat.typeanls.startswith('toii') or gdat.typeanls.startswith('hosttoii')) and listnamefeat[k][n] in [ \
                                                                            'radistar', 'massstar', 'metastar', 'loggstar', 'tagetar', 'distsyst', 'numbcomptranstar', \
-                                                                               'tmagsyst', 'vmagsyst']:
+                                                                               'magtsystTESS', 'vmagsyst']:
                 boolgood = True
             
             if gdat.typeanls.startswith('toii'):
@@ -1457,7 +1480,7 @@ def init( \
                                                   'declstar', 'rascstar', 'laecstar', 'loecstar', \
                                                   'radistar', 'massstar', 'metastar', 'loggstar', \
                                                   'tagetar', 'distsyst', 'numbcomptranstar', 'tagestar', \
-                                                  'tmagsyst', 'vmagsyst', \
+                                                  'magtsystTESS', 'vmagsyst', \
                                                   
                                                   'radicomp', 'tmptplan', 'rvelsemapred', \
                                                   'pericomp', 'periplan', 'duratran', 'dcyc', 'depttrancomp', \
@@ -1486,7 +1509,7 @@ def init( \
                     boolgood = True
         
             if gdat.typeanls == 'vetting':
-                if not listnamefeat[k][n] in ['tic']:
+                if not listnamefeat[k][n] in ['TICID']:
                     boolgood = True
             
             #if gdat.typeanls == 'plan':
@@ -1512,7 +1535,7 @@ def init( \
                 continue
             
             # exclude features with unuseful IDs
-            if listnamefeat[k][n] in ['tici', 'TOIID']:
+            if listnamefeat[k][n] in ['TICID', 'TOIID']:
                 continue
             
             samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]][0])
@@ -1522,15 +1545,24 @@ def init( \
                     print('')
                     print('')
                     print('')
+                    print('gdat.listnamepopl[k]')
+                    print(gdat.listnamepopl[k])
+                    print('listnamefeat[k][n]')
+                    print(listnamefeat[k][n])
                     print('samptemp')
                     print(samptemp)
-                    raise Exception('np.isscalar(samptemp) or len(samptemp) == 0')
+                    print('Warning! np.isscalar(samptemp) or len(samptemp) == 0')
+                    continue
+                    #raise Exception('np.isscalar(samptemp) or len(samptemp) == 0')
 
+            print('samptemp')
+            print(samptemp)
+            print(samptemp.shape)
             if not isinstance(samptemp[0], str) and np.isfinite(samptemp).size > 0:
                 listsampfilt[k].append(samptemp.astype(float))
                 listnamefeatfilt[k].append(listnamefeat[k][n])
         if gdat.namefeatlablsamp is not None:
-            gdat.listlablsamp[k] = gdat.dictpopl[gdat.listnamepopl[k]][gdat.namefeatlablsamp]
+            gdat.listlablsamp[k] = gdat.dictpopl[gdat.listnamepopl[k]][gdat.namefeatlablsamp][0]
         
         if len(listsampfilt[k]) == 0:
             print('')
@@ -1565,6 +1597,8 @@ def init( \
             print('')
             print('k')
             print(k)
+            print('gdat.listnamepopl[k]')
+            print(gdat.listnamepopl[k])
             raise Exception('listnamefeat[k] is empty.')
 
     # list of pairs of feature names to be skipped
