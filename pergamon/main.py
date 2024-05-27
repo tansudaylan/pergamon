@@ -198,37 +198,38 @@ def init( \
         gdat.figrsizeydob = [8., 4.]
         gdat.figrsizeydobskin = [8., 2.5]
     
-    # check inputs
-    if gdat.booldiag:
-        if not isinstance(gdat.dictpopl, dict):
-            print('')
-            print('')
-            print('')
-            raise Exception('not isinstance(gdat.dictpopl, dict)')
-        
-        for namepopl in gdat.dictpopl:
-            if not isinstance(gdat.dictpopl[namepopl], dict):
-                print('')
-                print('')
-                print('')
-                raise Exception('gdat.dictpopl should be a dictionary of dictionaries.')
-            
-            for namefeat in gdat.dictpopl[namepopl]:
-                if not isinstance(gdat.dictpopl[namepopl][namefeat][0], np.ndarray) or gdat.dictpopl[namepopl][namefeat][0].ndim != 1:
-                    print('')
-                    print('')
-                    print('type(gdat.dictpopl[namepopl][namefeat])')
-                    print(type(gdat.dictpopl[namepopl][namefeat]))
-                    print('gdat.dictpopl[namepopl][namefeat]')
-                    print(gdat.dictpopl[namepopl][namefeat])
-                    raise Exception('not isinstance(gdat.dictpopl[namepopl][namefeat], np.ndarray) or gdat.dictpopl[namepopl][namefeat].ndim != 1')
-
     if gdat.dictpopl is None:
         gdat.dictpopl = dict()
         booldictinpt = False
         
         if gdat.listdictlablcolrpopl is not None:
             raise Exception('')
+        
+        # check inputs
+        if gdat.booldiag:
+            if not isinstance(gdat.dictpopl, dict):
+                print('')
+                print('')
+                print('')
+                raise Exception('not isinstance(gdat.dictpopl, dict)')
+            
+            for namepopl in gdat.dictpopl:
+                if not isinstance(gdat.dictpopl[namepopl], dict):
+                    print('')
+                    print('')
+                    print('')
+                    raise Exception('gdat.dictpopl should be a dictionary of dictionaries.')
+                
+                for namefeat in gdat.dictpopl[namepopl]:
+                    if not isinstance(gdat.dictpopl[namepopl][namefeat][0], np.ndarray) or gdat.dictpopl[namepopl][namefeat][0].ndim != 1:
+                        print('')
+                        print('')
+                        print('type(gdat.dictpopl[namepopl][namefeat])')
+                        print(type(gdat.dictpopl[namepopl][namefeat]))
+                        print('gdat.dictpopl[namepopl][namefeat]')
+                        print(gdat.dictpopl[namepopl][namefeat])
+                        raise Exception('not isinstance(gdat.dictpopl[namepopl][namefeat], np.ndarray) or gdat.dictpopl[namepopl][namefeat].ndim != 1')
+
     else:
         
         # check if gdat.dictpopl is properly defined, whose leaves should be a list of two items (of values and labels, respectively)
@@ -415,6 +416,10 @@ def init( \
         
         # planets with habitable irradiation
         dictindxexar['irrahabi'] = np.where((gdat.dictpopl['totl']['irra'][0] > 0.7) & (gdat.dictpopl['totl']['irra'][0] < 1.1))[0]
+        
+        # planets with habitable irradiation
+        dictindxexar['eart'] = np.where((gdat.dictpopl['totl']['radicomp'][0] > 0.6) & (gdat.dictpopl['totl']['radicomp'][0] < 1.4) & \
+                                        (gdat.dictpopl['totl']['masscomp'][0] > 0.6) & (gdat.dictpopl['totl']['masscomp'][0] < 1.4))[0]
         
     if gdat.typeanls.startswith('toii'):
         # subpopulations
@@ -1110,6 +1115,17 @@ def init( \
             
             gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('Exoplanets')
+            gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'black']
+            gdat.listdictlablcolrpopl[-1]['eart'] = ['Earth-like', 'blue']
+            gdat.listboolcompexcl.append(False)
+            
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
+            gdat.listdictlablcolrpopl[-1]['eart'] = ['Earth-like', 'blue']
+            gdat.listboolcompexcl.append(True)
+            
+            gdat.listdictlablcolrpopl.append(dict())
+            gdat.listtitlcomp.append('Exoplanets')
             gdat.listdictlablcolrpopl[-1]['kepl'] = ['Kepler discoveries', 'firebrick']
             gdat.listdictlablcolrpopl[-1]['tess'] = ['TESS discoveries', 'blue']
             gdat.listboolcompexcl.append(True)
@@ -1555,9 +1571,6 @@ def init( \
                     continue
                     #raise Exception('np.isscalar(samptemp) or len(samptemp) == 0')
 
-            print('samptemp')
-            print(samptemp)
-            print(samptemp.shape)
             if not isinstance(samptemp[0], str) and np.isfinite(samptemp).size > 0:
                 listsampfilt[k].append(samptemp.astype(float))
                 listnamefeatfilt[k].append(listnamefeat[k][n])
@@ -2166,22 +2179,5 @@ def init( \
                     plt.savefig(path)
                     plt.close()
 
-    # PCA
-    if gdat.boolprca:
-        import mergen
-        mergen.exec_prca_skit(listvarb)
-
-    # search for clusters
-
-    if gdat.boolintpscat:
-        ## interpolate distribution
-        np.interp2d(grid)
-    
-    print('')
-    print('')
-    print('')
-    print('')
-    print('')
-    
     return gdat.dictpopl
 
