@@ -976,7 +976,7 @@ def init( \
             #plt.close()
     
         if gdat.typeanls == 'hjuppcur':
-            listlabl = ['log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', '$A_g$']
+            listlabl = [r'log $g_{\mathrm{p}}$ [cgs]', r'$T_{\mathrm{eq}}$ [K]', '[Fe/H] [dex]', r'$T_{\mathrm{day}}$ [K]', r'$A_g$']
             listname = ['logg', 'ptmp', 'meta', 'tday', 'albe']
             path = gdat.pathdata + 'catlpcurtess.csv'
             # get the dictionaries holding the population features
@@ -1123,7 +1123,7 @@ def init( \
             gdat.listtitlcomp.append('')
             gdat.listdictlablcolrpopl[-1]['totl'] = ['All', 'gray']
             gdat.listdictlablcolrpopl[-1]['atmo'] = ['High TSM or ESM', 'blue']
-            gdat.listdictlablcolrpopl[-1]['atmomassprec05pc'] = ['High TSM or ESM \& Precise mass', 'orange']
+            gdat.listdictlablcolrpopl[-1]['atmomassprec05pc'] = [r'High TSM or ESM \& Precise mass', 'orange']
             gdat.listboolcompexcl.append(False)
             
             gdat.listdictlablcolrpopl.append(dict())
@@ -1165,10 +1165,10 @@ def init( \
              
             gdat.listdictlablcolrpopl.append(dict())
             gdat.listtitlcomp.append('')
-            gdat.listdictlablcolrpopl[-1]['massstar_lt05'] = ['M $<$ 0.5 $M_{\odot}$', 'b']
-            gdat.listdictlablcolrpopl[-1]['massstar_0510'] = ['1 $M_{\odot}$ $>$ M $>$ 0.5 $M_{\odot}$', 'g']
-            gdat.listdictlablcolrpopl[-1]['massstar_1020'] = ['2 $M_{\odot}$ $>$ M $>$ 1 $M_{\odot}$', 'r']
-            gdat.listdictlablcolrpopl[-1]['massstar_gt20'] = ['M $>$ 2. $M_{\odot}$', 'orange']
+            gdat.listdictlablcolrpopl[-1]['massstar_lt05'] = [r'M $<$ 0.5 $M_{\odot}$', 'b']
+            gdat.listdictlablcolrpopl[-1]['massstar_0510'] = [r'1 $M_{\odot}$ $>$ M $>$ 0.5 $M_{\odot}$', 'g']
+            gdat.listdictlablcolrpopl[-1]['massstar_1020'] = [r'2 $M_{\odot}$ $>$ M $>$ 1 $M_{\odot}$', 'r']
+            gdat.listdictlablcolrpopl[-1]['massstar_gt20'] = [r'M $>$ 2. $M_{\odot}$', 'orange']
             gdat.listboolcompexcl.append(True)
              
             #gdat.listdictlablcolrpopl.append(dict())
@@ -1201,9 +1201,9 @@ def init( \
             for strg in ['mass', 'radi']:
                 
                 if strg == 'radi':
-                    strgfrac = '\dfrac{\sigma_{R_p}}{R_p}'
+                    strgfrac = r'\dfrac{\sigma_{R_p}}{R_p}'
                 else:
-                    strgfrac = '\dfrac{\sigma_{M_p}}{M_p}'
+                    strgfrac = r'\dfrac{\sigma_{M_p}}{M_p}'
 
                 gdat.listdictlablcolrpopl.append(dict())
                 gdat.listtitlcomp.append('')
@@ -1686,16 +1686,35 @@ def init( \
         
         # get the labels and scalings for the features in the population
         listlablfeat[k], listscalfeat[k], _, _, _ = tdpy.retr_listlablscalpara(listnamefeat[k], listlablunitforc=listlablunitforc)
+
+        if len(listlablfeat[k]) != len(listnamefeat[k]):
+            print('Warning: mismatch between feature names and labels. Rebuilding label list for population %s.' % gdat.listnamepopl[k])
+            listlabltemp = []
+            for n in range(len(listnamefeat[k])):
+                if n < len(listlablfeat[k]) and listlablfeat[k][n] is not None:
+                    labl = listlablfeat[k][n]
+                else:
+                    labl = [listnamefeat[k][n], listlablunitforc[n] if listlablunitforc[n] is not None else '']
+                if not isinstance(labl, (list, tuple)) or len(labl) < 2:
+                    labl = [listnamefeat[k][n], listlablunitforc[n] if listlablunitforc[n] is not None else '']
+                listlabltemp.append(labl)
+            listlablfeat[k] = listlabltemp
         
         if booldiag:
-            for m in gdat.indxfeat[k]:
-                if isinstance(listlablfeat[k][m][1], list):
+            for m in range(len(listlablfeat[k])):
+                if len(listlablfeat[k][m]) < 2 or isinstance(listlablfeat[k][m][1], list):
                     print('')
                     print('')
                     print('')
                     print('listlablfeat[k]')
                     print(listlablfeat[k])
                     raise Exception('')
+
+        if len(listlablfeat[k]) < len(listnamefeat[k]):
+            listlablfeat[k] += [[listnamefeat[k][n], listlablunitforc[n] if listlablunitforc[n] is not None else ''] for n in range(len(listlablfeat[k]), len(listnamefeat[k]))]
+
+        if len(listlablfeat[k]) != len(listnamefeat[k]):
+            raise Exception('Mismatch between feature names and labels for %s' % gdat.listnamepopl[k])
         
 
     # store features on disc
@@ -1711,12 +1730,16 @@ def init( \
         indxfeatsort = np.argsort(listnamefeat[k])
         print('Population %s' % gdat.listnamepopl[k])
         for m in indxfeatsort:
+            if m >= len(listlablfeat[k]) or m >= len(listscalfeat[k]):
+                continue
             print('%s: %s, %s' % (listnamefeat[k][m], listlablfeat[k][m], listscalfeat[k][m]))
         print('')
 
     if booldiag:
         for k in gdat.indxpopl:
-            for m in indxfeatsort:
+            for m in range(len(listlablfeat[k])):
+                if m >= len(listnamefeat[k]):
+                    break
                 if isinstance(listlablfeat[k][m][1], list):
                     raise Exception('')
         
@@ -2182,7 +2205,7 @@ def init( \
                     medislop = np.median(postslop)
                     lowrslop = np.median(postslop) - np.percentile(postslop, 16)
                     upprslop = np.percentile(postslop, 84) - np.median(postslop)
-                    titl = 'PCC = %.3g, Slope: %.3g $\substack{+%.2g \\\\ -%.2g}$' % (listcoef[u, k], medislop, upprslop, lowrslop)
+                    titl = r'PCC = %.3g, Slope: %.3g $\substack{+%.2g \\ -%.2g}$' % (listcoef[u, k], medislop, upprslop, lowrslop)
                     axis.set_xlabel(listlabl[k])
                     axis.set_ylabel(listlabl[u])
             
