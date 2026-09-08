@@ -245,6 +245,41 @@ def init( \
 
     else:
         
+        for name in gdat.dictpopl:
+            if not isinstance(gdat.dictpopl[name], dict):
+                print('')
+                print('')
+                print('')
+                raise Exception('If dictpopl is manually defined, it should be a nested dictionary.')
+            for nameseco in list(gdat.dictpopl[name].keys()):
+                value = gdat.dictpopl[name][nameseco]
+                if isinstance(value, np.ndarray):
+                    gdat.dictpopl[name][nameseco] = [np.asarray(value), '']
+                elif isinstance(value, dict):
+                    continue
+                elif isinstance(value, (list, tuple)) and len(value) == 2:
+                    if value[1] is None or isinstance(value[1], str):
+                        continue
+                    if isinstance(value[1], (list, tuple)) and len(value[1]) == 0:
+                        continue
+                    gdat.dictpopl[name][nameseco] = [np.asarray(value[0]), value[1]]
+                elif isinstance(value, (list, tuple)):
+                    gdat.dictpopl[name][nameseco] = [np.asarray(value), '']
+                elif np.isscalar(value):
+                    gdat.dictpopl[name][nameseco] = [np.atleast_1d(np.asarray(value)), '']
+                else:
+                    if gdat.booldiag:
+                        print('')
+                        print('')
+                        print('')
+                        print('name')
+                        print(name)
+                        print('nameseco')
+                        print(nameseco)
+                        print('gdat.dictpopl[name][nameseco]')
+                        print(value)
+                        raise Exception('gdat.dictpopl is not properly defined.')
+
         # check if gdat.dictpopl is properly defined, whose leaves should be a list of two items (of values and labels, respectively)
         if gdat.booldiag:
             for name in gdat.dictpopl:
@@ -254,21 +289,26 @@ def init( \
                     print('')
                     raise Exception('If dictpopl is manually defined, it should be a nested dictionary.')
                 for nameseco in gdat.dictpopl[name]:
-                    if len(gdat.dictpopl[name][nameseco]) != 2 or len(gdat.dictpopl[name][nameseco][1]) > 0 and not isinstance(gdat.dictpopl[name][nameseco][1], str):
-                        print('')
-                        print('')
-                        print('')
-                        print('name')
-                        print(name)
-                        print('nameseco')
-                        print(nameseco)
-                        print('gdat.dictpopl[name][nameseco]')
-                        print(gdat.dictpopl[name][nameseco])
-                        print('gdat.dictpopl[name][nameseco][0]')
-                        print(gdat.dictpopl[name][nameseco][0])
-                        print('gdat.dictpopl[name][nameseco][1]')
-                        print(gdat.dictpopl[name][nameseco][1])
-                        raise Exception('gdat.dictpopl is not properly defined.')
+                    value = gdat.dictpopl[name][nameseco]
+                    if isinstance(value, np.ndarray):
+                        continue
+                    if isinstance(value, dict):
+                        continue
+                    if isinstance(value, (list, tuple)) and len(value) == 2:
+                        if value[1] is None or isinstance(value[1], str):
+                            continue
+                        if isinstance(value[1], (list, tuple)) and len(value[1]) == 0:
+                            continue
+                    print('')
+                    print('')
+                    print('')
+                    print('name')
+                    print(name)
+                    print('nameseco')
+                    print(nameseco)
+                    print('gdat.dictpopl[name][nameseco]')
+                    print(value)
+                    raise Exception('gdat.dictpopl is not properly defined.')
 
         booldictinpt = True
         
@@ -786,7 +826,15 @@ def init( \
         if gdat.typeanls == 'qtce':
             
             # base path for the faint-star search
-            pathfstr = '/Users/tdaylan/Documents/work/data/external/FaintStars/'
+            pathfstr = os.environ.get('FAINTSTARS_DATA_PATH',
+                                     os.path.join(os.getcwd(), 'data', 'external', 'FaintStars'))
+            if not os.path.exists(pathfstr):
+                pathfstr = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'external', 'FaintStars')
+            if not os.path.exists(pathfstr):
+                pathfstr = os.path.join(os.getcwd(), 'external', 'FaintStars')
+            pathfstr = os.path.abspath(pathfstr)
+            if not pathfstr.endswith(os.sep):
+                pathfstr += os.sep
             
             ## TESS sectors
             listtsecprms = range(1, 27)
@@ -1568,7 +1616,11 @@ def init( \
             if not boolgood:
                 continue
         
-            gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]] = gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]
+            value = gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]
+            if isinstance(value, (list, tuple)) and len(value) == 2:
+                gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]] = value
+            else:
+                gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]] = [value, '']
             
             # exclude features with string value
             if listnamefeat[k][n] in ['typedisptess', 'strgcomm', 'namestar', 'namesyst', 'nametoii', 'nameplan', \
@@ -1579,10 +1631,12 @@ def init( \
             if listnamefeat[k][n] in ['TICID', 'TOIID']:
                 continue
             
-            samptemp = np.array(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]][0])
+            samptemp = np.asarray(gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]][0])
+            if samptemp.ndim == 0:
+                samptemp = np.atleast_1d(samptemp)
             
             if gdat.booldiag:
-                if np.isscalar(samptemp) or isinstance(samptemp, np.ndarray) and samptemp.size == 0:
+                if samptemp.size == 0:
                     print('')
                     print('')
                     print('')
@@ -1592,11 +1646,10 @@ def init( \
                     print(listnamefeat[k][n])
                     print('samptemp')
                     print(samptemp)
-                    print('Warning! np.isscalar(samptemp) or len(samptemp) == 0')
+                    print('Warning! len(samptemp) == 0')
                     continue
-                    #raise Exception('np.isscalar(samptemp) or len(samptemp) == 0')
 
-            if not isinstance(samptemp[0], str) and np.isfinite(samptemp).size > 0:
+            if (not isinstance(samptemp.flat[0], str)) and np.isfinite(samptemp).size > 0:
                 listsampfilt[k].append(samptemp.astype(float))
                 listnamefeatfilt[k].append(listnamefeat[k][n])
         if gdat.namefeatlablsamp is not None:
@@ -1621,7 +1674,18 @@ def init( \
             print(listnamefeat[k])
             #raise Exception('')
         else:
-            listsampfilt[k] = np.vstack(listsampfilt[k]).T
+            lengths = [np.asarray(val).size for val in listsampfilt[k]]
+            if np.unique(lengths).size > 1:
+                refsize = lengths[0]
+                keep = [i for i, size in enumerate(lengths) if size == refsize]
+                if len(keep) != len(listsampfilt[k]):
+                    print('Warning! Inconsistent feature lengths in %s; dropping %d mismatched features.' % (gdat.listnamepopl[k], len(listsampfilt[k]) - len(keep)))
+                    listsampfilt[k] = [listsampfilt[k][i] for i in keep]
+                    listnamefeatfilt[k] = [listnamefeatfilt[k][i] for i in keep]
+                    lengths = [np.asarray(val).size for val in listsampfilt[k]]
+            if len(listsampfilt[k]) == 0:
+                continue
+            listsampfilt[k] = np.column_stack([np.asarray(val).reshape(-1) for val in listsampfilt[k]]).T
     listsamp = listsampfilt
     listnamefeat = listnamefeatfilt
     
@@ -1654,16 +1718,25 @@ def init( \
         if gdat.booldiag:
             for name in gdat.dictpoplfilt:
                 for nameseco in gdat.dictpoplfilt[name]:
-                    if len(gdat.dictpoplfilt[name][nameseco]) != 2 or \
-                                        len(gdat.dictpoplfilt[name][nameseco][1]) > 0 and not isinstance(gdat.dictpoplfilt[name][nameseco][1], str):
-                        print('')
-                        print('')
-                        print('')
-                        print('gdat.dictpoplfilt[name][nameseco]')
-                        print(gdat.dictpoplfilt[name][nameseco])
-                        print('gdat.typeanls')
-                        print(gdat.typeanls)
-                        raise Exception('gdat.dictpoplfilt is not properly defined.')
+                    value = gdat.dictpoplfilt[name][nameseco]
+                    if isinstance(value, np.ndarray):
+                        continue
+                    if isinstance(value, dict):
+                        continue
+                    if isinstance(value, (list, tuple)) and len(value) == 2:
+                        label = value[1]
+                        if label is None or isinstance(label, str):
+                            continue
+                        if isinstance(label, (list, tuple)) and len(label) == 0:
+                            continue
+                    print('')
+                    print('')
+                    print('')
+                    print('gdat.dictpoplfilt[name][nameseco]')
+                    print(value)
+                    print('gdat.typeanls')
+                    print(gdat.typeanls)
+                    raise Exception('gdat.dictpoplfilt is not properly defined.')
 
         for n in range(numbfeat[k]):
             if gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][1] != '':
