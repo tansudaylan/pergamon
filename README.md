@@ -15,7 +15,10 @@ Within the active scientific stack, Pergamon sits in the population-analysis and
 ```bash
 cd pergamon
 python -m pip install -e .
+export PERGAMON_PATH=/path/to/pergamon
 ```
+
+`PERGAMON_PATH` identifies the repository root. Keep runtime inputs in `data/` and generated pipeline outputs in `visuals/`; both directories are ignored by Git.
 
 ## Minimal workflow
 
