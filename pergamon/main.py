@@ -13,6 +13,8 @@ import miletos
 import tdpy
 from tdpy import summgene 
 
+from .paths import get_data_path, get_repository_path, get_visuals_path
+
 
 def _normalize_index(indx):
     """Normalize a sample index specification to a 1D integer array."""
@@ -197,23 +199,26 @@ def init( \
     print('gdat.typeanls')
     print(gdat.typeanls)
         
-    if gdat.pathbase is None:
-        env_path = os.environ.get('PERGAMON_DATA_PATH')
-        if env_path:
-            gdat.pathbase = os.path.join(env_path, str(gdat.typeanls))
-        else:
-            gdat.pathbase = os.path.join(os.getcwd(), 'data', 'pergamon', str(gdat.typeanls))
-        gdat.pathbase = os.path.abspath(gdat.pathbase)
-        gdat.pathbase = gdat.pathbase.rstrip(os.sep) + os.sep
+    boolpathdefault = gdat.pathbase is None
+    if boolpathdefault:
+        gdat.pathbase = str(get_repository_path())
+    gdat.pathbase = os.path.abspath(gdat.pathbase)
+    gdat.pathbase = gdat.pathbase.rstrip(os.sep) + os.sep
     
     print('gdat.pathbase')
     print(gdat.pathbase)
 
     if gdat.pathdata is None:
-        gdat.pathdata = os.path.join(gdat.pathbase, 'data') + os.sep
+        if boolpathdefault:
+            gdat.pathdata = os.path.join(get_data_path(), str(gdat.typeanls)) + os.sep
+        else:
+            gdat.pathdata = os.path.join(gdat.pathbase, 'data') + os.sep
     
     if gdat.pathvisu is None:
-        gdat.pathvisu = os.path.join(gdat.pathbase, 'visuals') + os.sep
+        if boolpathdefault:
+            gdat.pathvisu = os.path.join(get_visuals_path(), str(gdat.typeanls)) + os.sep
+        else:
+            gdat.pathvisu = os.path.join(gdat.pathbase, 'visuals') + os.sep
     os.makedirs(gdat.pathdata, exist_ok=True)
     os.makedirs(gdat.pathvisu, exist_ok=True)
     

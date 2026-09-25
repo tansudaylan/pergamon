@@ -23,8 +23,8 @@ def test_init_accepts_flattened_array_population():
     np.testing.assert_allclose(result['pop']['massstar'][0], np.array([1.0, 1.1]))
 
 
-def test_init_falls_back_when_env_data_path_is_missing(monkeypatch):
-    monkeypatch.delenv('PERGAMON_DATA_PATH', raising=False)
+def test_init_uses_repository_runtime_paths(monkeypatch, tmp_path):
+    monkeypatch.setenv('PERGAMON_PATH', str(tmp_path))
 
     dictpopl = {
         'pop': {
@@ -42,6 +42,8 @@ def test_init_falls_back_when_env_data_path_is_missing(monkeypatch):
 
     assert 'pop' in result
     np.testing.assert_allclose(result['pop']['radistar'][0], np.array([1.0, 1.2]))
+    assert (tmp_path / 'data' / 'defa').is_dir()
+    assert (tmp_path / 'visuals' / 'defa').is_dir()
 
 
 def test_retr_subp_accepts_python_list_indices():

@@ -20,20 +20,22 @@ export PERGAMON_PATH=/path/to/pergamon
 
 `PERGAMON_PATH` identifies the repository root. Keep runtime inputs in `data/` and generated pipeline outputs in `visuals/`; both directories are ignored by Git.
 
-## Minimal workflow
+## Example workflow
 
-The package is designed around a dictionary of population features and a workflow entry point, `pergamon.init(...)`, which performs the analysis and optional plotting. A lightweight smoke test is sufficient to confirm the package loads and exposes the expected functionality:
+The runnable example passes two deterministic simulated stellar samples through `pergamon.init(...)` and retains the pipeline's mass-radius comparison:
 
-```python
-import pergamon
-print(hasattr(pergamon, '__file__'))
-print(hasattr(pergamon, 'init'))
+```bash
+python examples/simulated_stellar_populations.py --typefileplot png
 ```
+
+![Pergamon simulated stellar population comparison](examples/simulated_stellar_populations.png)
+
+The reference sample spans 0.75 to 1.15 solar masses. The radius-enhanced sample spans 0.95 to 1.45 solar masses and follows a steeper deterministic mass-radius relation. Both populations are simulated inputs rather than observed stars. Pergamon constructs the common feature matrix and produces the displayed comparison through its standard population-plotting pipeline.
 
 ## Main modules
 
 - `pergamon/main.py`: the core population-analysis workflow and plotting logic.
-- `examples/`: notebooks or example-driving files for population visualization.
+- `examples/`: executable population-visualization workflows and their generated figures.
 - `tests/`: regression and import checks.
 
 ## Dependencies
