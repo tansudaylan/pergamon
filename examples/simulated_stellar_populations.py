@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Compare two clearly labeled simulated stellar populations with Pergamon."""
 
-import argparse
 import contextlib
 import io
 import shutil
@@ -16,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import pergamon
+from tdpy.cli import parse_plot_arguments
 
 
 def make_simulated_populations() -> dict:
@@ -79,18 +79,8 @@ def run_example(output_path: Path) -> dict:
     return result
 
 
-def parse_arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--typefileplot",
-        choices=("png", "pdf"),
-        default="png",
-    )
-    return parser.parse_args()
-
-
 def main() -> int:
-    arguments = parse_arguments()
+    arguments = parse_plot_arguments(description=__doc__)
     output_path = Path(__file__).with_name(
         f"simulated_stellar_populations.{arguments.typefileplot}"
     )
