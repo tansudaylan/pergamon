@@ -13,64 +13,22 @@ import miletos
 import tdpy
 from tdpy import summgene 
 from tdpy.paths import make_directory
+from tdpy.population import subset_population
 
 from .paths import get_data_path, get_repository_path, get_visuals_path
 
 
-def _normalize_index(indx):
-    """Normalize a sample index specification to a 1D integer array."""
-    if indx is None:
-        return np.array([], dtype=int)
-    if isinstance(indx, (list, tuple, np.ndarray)):
-        arr = np.asarray(indx, dtype=int)
-    else:
-        arr = np.asarray([indx], dtype=int)
-    return np.atleast_1d(arr).astype(int, copy=False)
-
-
 def retr_subp(dictpopl, namepoplinit, namepoplfinl, indx, dictnumbsamp=None, dictindxsamp=None):
-    
-    indx = _normalize_index(indx)
-
-    if len(indx) == 0:
-        indx = np.array([], dtype=int)
-
-    if indx.size == 0:
+    normalized_indices = subset_population(
+        dictpopl,
+        namepoplinit,
+        namepoplfinl,
+        indx,
+        dictnumbsamp,
+        dictindxsamp,
+    )
+    if normalized_indices.size == 0:
         print('Warning! indx is zero.')
-    
-    dictpopl[namepoplfinl] = dict()
-    for namefeat in dictpopl[namepoplinit].keys():
-        dictpopl[namepoplfinl][namefeat] = [[], dictpopl[namepoplinit][namefeat][1]]
-        
-        if not isinstance(dictpopl[namepoplinit][namefeat], list) \
-            or indx.size > 0 and len(dictpopl[namepoplinit][namefeat][0]) == 0 \
-            or len(dictpopl[namepoplinit][namefeat]) != 2:
-            print('')
-            print('')
-            print('')
-            print('namepoplinit')
-            print(namepoplinit)
-            print('namefeat')
-            print(namefeat)
-            print('dictpopl[namepoplinit][namefeat][0]')
-            print(dictpopl[namepoplinit][namefeat][0])
-            print('indx')
-            print(indx)
-            print('dictpopl[namepoplinit][namefeat]')
-            summgene(dictpopl[namepoplinit][namefeat])
-            raise Exception('Bad dictpopl should have populations of features, where each feature is a two-element list of values (ndarray) and a string for unit')
-        
-        if indx.size > 0:
-            dictpopl[namepoplfinl][namefeat][0] = dictpopl[namepoplinit][namefeat][0][indx]
-        else:
-            dictpopl[namepoplfinl][namefeat][0] = np.array([])
-    
-    if dictindxsamp is not None:
-        dictindxsamp.setdefault(namepoplinit, {})
-        dictindxsamp[namepoplinit][namepoplfinl] = indx
-        dictindxsamp.setdefault(namepoplfinl, {})
-    if dictnumbsamp is not None:
-        dictnumbsamp[namepoplfinl] = indx.size
     
 
 def init( \
