@@ -12,6 +12,7 @@ import nicomedia
 import miletos
 import tdpy
 from tdpy import summgene 
+from tdpy.paths import make_directory
 
 from .paths import get_data_path, get_repository_path, get_visuals_path
 
@@ -219,8 +220,8 @@ def init( \
             gdat.pathvisu = os.path.join(get_visuals_path(), str(gdat.typeanls)) + os.sep
         else:
             gdat.pathvisu = os.path.join(gdat.pathbase, 'visuals') + os.sep
-    os.makedirs(gdat.pathdata, exist_ok=True)
-    os.makedirs(gdat.pathvisu, exist_ok=True)
+    make_directory(gdat.pathdata)
+    make_directory(gdat.pathvisu)
     
     # settings
     ## plotting
