@@ -6,9 +6,9 @@ Pergamon is a population-analysis and visualization package for astrophysical sa
 
 The package is intended for population-level analysis of astrophysical systems, including comparisons across samples, feature extraction, and diagnostic visualization of multi-dimensional parameter distributions. It is especially suited to checking whether samples differ in physically meaningful ways and produces summary plots that make the underlying population structure visible.
 
-## Current ecosystem role
+## Population analysis
 
-Within the active scientific stack, Pergamon sits in the population-analysis and visualization layer. It depends on the shared numerical and plotting utilities in `tdpy`, uses the same scientific-library conventions as the broader workflow stack, and provides a workflow layer for summarizing and comparing astrophysical populations rather than implementing low-level numerical primitives.
+Pergamon compares astrophysical samples across measured or inferred properties, examines one- and two-dimensional distributions, identifies feature relationships, and generates summary figures that expose population differences.
 
 ## Installation
 
@@ -40,7 +40,7 @@ The reference sample spans 0.75 to 1.15 solar masses. The radius-enhanced sample
 
 ## Dependencies
 
-The package uses the standard scientific stack and ecosystem utilities, including:
+The package uses:
 
 - `numpy`
 - `pandas`
