@@ -32,12 +32,6 @@ python examples/simulated_stellar_populations.py --typefileplot png
 
 The reference sample spans 0.75 to 1.15 solar masses. The radius-enhanced sample spans 0.95 to 1.45 solar masses and follows a steeper deterministic mass-radius relation. Both populations are simulated inputs rather than observed stars. Pergamon constructs the common feature matrix and produces the displayed comparison through its standard population-plotting pipeline.
 
-## Main modules
-
-- `pergamon/main.py`: the core population-analysis workflow and plotting logic.
-- `examples/`: executable population-visualization workflows and their generated figures.
-- `tests/`: regression and import checks.
-
 ## Dependencies
 
 The package uses:
@@ -52,5 +46,5 @@ The package uses:
 
 ## Output behavior
 
-The package produces visual summaries of population properties and feature distributions. The important objective is to make the population-level patterns visible to the researcher without forcing them to read the underlying implementation.
+Pergamon produces marginal distributions, feature-pair comparisons, and population summary figures from measured or inferred sample properties.
 
