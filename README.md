@@ -54,7 +54,3 @@ The package uses the standard scientific stack and ecosystem utilities, includin
 
 The package produces visual summaries of population properties and feature distributions. The important scientific objective is to make the population-level patterns visible to the researcher without forcing them to read the underlying implementation.
 
-## Development status
-
-Pergamon is maintained as a focused population-analysis workflow rather than a monolithic general-purpose repository. It is useful when used with the appropriate population dictionaries and feature conventions, and it should continue to rely on shared utility layers rather than duplicating low-level numerical functionality.
-
