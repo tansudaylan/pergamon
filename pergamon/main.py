@@ -31,6 +31,19 @@ def retr_subp(dictpopl, namepoplinit, namepoplfinl, indx, dictnumbsamp=None, dic
         print('Warning! indx is zero.')
     
 
+def retr_llik_corr(para, gdat):
+    """Fit a line at the residual scale supplied by the population data."""
+    angle, intercept = para
+    if np.isclose(np.sin(angle), 0.):
+        return -np.inf
+    slope = -1. / np.tan(angle)
+    variance = gdat.tempsecostdv**2 + (slope * gdat.tempfrststdv)**2
+    if np.any(variance <= 0.):
+        return -np.inf
+    model = slope * gdat.tempfrst + intercept / np.sin(angle)
+    return -0.5 * np.sum((gdat.tempseco - model)**2 / variance + np.log(2. * np.pi * variance))
+
+
 def init( \
         # type of analysis
         typeanls=None, \
@@ -2215,11 +2228,12 @@ def init( \
             listcoef = np.zeros((numbfeat[k], numbfeat[k]))
             
             for n in gdat.indxfeat[k]: 
-                gdat.tempfrst = gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][n]]
-                gdat.tempfrststdv = arrystdvtemp[:, n]
+                gdat.tempfrst = np.asarray(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][n]][0], dtype=float)
+                gdat.tempfrststdv = np.zeros_like(gdat.tempfrst)
                 for m in gdat.indxfeat[k]: 
-                    gdat.tempseco = gdat.dictpopl[gdat.listnamepopl[k]][listnamefeat[k][m]]
-                    gdat.tempsecostdv = arrystdvtemp[:, m]
+                    gdat.tempseco = np.asarray(gdat.dictpoplfilt[gdat.listnamepopl[k]][listnamefeat[k][m]][0], dtype=float)
+                    scatter = max(float(np.std(gdat.tempseco)), np.finfo(float).eps)
+                    gdat.tempsecostdv = np.full_like(gdat.tempseco, scatter)
                     
                     minmxpos = np.amin(gdat.tempfrst) / 1.1
                     maxmxpos = np.amax(gdat.tempfrst) * 1.1
@@ -2228,31 +2242,24 @@ def init( \
                     
                     # calculate PCC
                     coef, pval = scipy.stats.pearsonr(gdat.tempfrst, gdat.tempseco)
-                    listcoef[u, k] = coef
+                    listcoef[n, m] = coef
                     
                     # sample from a linear model
-                    numbdata = 2 * numbplan
-                    strgextn = '%d_' % b + listnamepara[k]
-                    featpost = tdpy.samp(gdat, pathvisu, numbsampwalk, numbsampburnwalk, numbsampburnwalkseco, retr_llik, \
-                                                    listlablpara, listscalpara, listminmpara, listmaxmpara, listmeangauspara, liststdvgauspara, \
-                                                        numbdata, strgextn=strgextn, typefileplot=gdat.typefileplot, verbtype=0)
+                    strgextn = 'pop%d_feat%d_%d' % (k, n, m)
+                    dictpost = tdpy.samp(gdat, numbsampwalk, retr_llik_corr,
+                                         ['angle', 'intercept'], listlablpara, listscalpara,
+                                         listminmpara, listmaxmpara, pathbase=gdat.pathvisu,
+                                         numbsampburnwalkinit=numbsampburnwalk,
+                                         numbsampburnwalk=numbsampburnwalkseco,
+                                         numbsamppostwalk=numbsampwalk - numbsampburnwalkseco,
+                                         strgextn=strgextn, typefileplot=gdat.typefileplot,
+                                         boolplot=False, typeverb=0)
+                    featpost = np.column_stack((dictpost['angle'], dictpost['intercept']))
                     
                     figr, axis = plt.subplots(figsize=(4, 4))
                     xerr = gdat.tempfrststdv
                     yerr = gdat.tempsecostdv
-                    
-                    if b == 0:
-                        colr = 'b'
-                    if b == 1:
-                        colr = 'k'
-                    if b == 0 or b == 1:
-                        axis.errorbar(gdat.tempfrst, gdat.tempseco, yerr=yerr, xerr=xerr, fmt='o', color=colr)
-                    if b == 2:
-                        numbplantess = len(data[0])
-                        axis.errorbar(gdat.tempfrst[:numbplantess], gdat.tempseco[:numbplantess], \
-                                                                                yerr=yerr[:numbplantess], xerr=xerr[:numbplantess], fmt='o', color='b')
-                        axis.errorbar(gdat.tempfrst[numbplantess:], gdat.tempseco[numbplantess:], \
-                                                                                yerr=yerr[numbplantess:], xerr=xerr[numbplantess:], fmt='o', color='k')
+                    axis.errorbar(gdat.tempfrst, gdat.tempseco, yerr=yerr, xerr=xerr, fmt='o', color='k')
                     
                     axis.set_xlim([minmxpos, maxmxpos])
                     axis.set_ylim([minmypos, maxmypos])
@@ -2261,12 +2268,13 @@ def init( \
                     medislop = np.median(postslop)
                     lowrslop = np.median(postslop) - np.percentile(postslop, 16)
                     upprslop = np.percentile(postslop, 84) - np.median(postslop)
-                    titl = r'PCC = %.3g, Slope: %.3g $\substack{+%.2g \\ -%.2g}$' % (listcoef[u, k], medislop, upprslop, lowrslop)
-                    axis.set_xlabel(listlabl[k])
-                    axis.set_ylabel(listlabl[u])
+                    titl = r'PCC = %.3g, Slope: %.3g $\substack{+%.2g \\ -%.2g}$' % (listcoef[n, m], medislop, upprslop, lowrslop)
+                    axis.set_title(titl)
+                    axis.set_xlabel(listlablfeat[k][n][0])
+                    axis.set_ylabel(listlablfeat[k][m][0])
             
                     plt.tight_layout()
-                    path = pathvisu + 'scat_%s_%s_%d.%s' % (listnamefeat[k], listnamefeat[u], b, gdat.typefileplot)
+                    path = gdat.pathvisu + 'scat_%s_%s_%d.%s' % (listnamefeat[k][n], listnamefeat[k][m], k, gdat.typefileplot)
                     print('Writing to %s...' % path)
                     plt.savefig(path)
                     plt.close()

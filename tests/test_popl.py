@@ -1,6 +1,18 @@
 import numpy as np
+from types import SimpleNamespace
 
 import pergamon
+from pergamon.main import retr_llik_corr
+
+
+def test_correlation_likelihood_normalizes_uncertain_data():
+    state = SimpleNamespace(
+        tempfrst=np.array([0., 1.]), tempseco=np.zeros(2),
+        tempfrststdv=np.ones(2), tempsecostdv=np.ones(2),
+    )
+    np.testing.assert_allclose(retr_llik_corr(np.array([np.pi / 2., 0.]), state),
+                               -np.log(2. * np.pi))
+    assert retr_llik_corr(np.array([np.pi / 2., 1.]), state) < -np.log(2. * np.pi)
 
 
 def test_init_accepts_flattened_array_population():
