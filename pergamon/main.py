@@ -6,6 +6,7 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
 
 import ephesos
 import nicomedia
@@ -2241,7 +2242,7 @@ def init( \
                     maxmypos = np.amax(gdat.tempseco) * 1.1
                     
                     # calculate PCC
-                    coef, pval = scipy.stats.pearsonr(gdat.tempfrst, gdat.tempseco)
+                    coef, pval = pearsonr(gdat.tempfrst, gdat.tempseco)
                     listcoef[n, m] = coef
                     
                     # sample from a linear model
