@@ -22,6 +22,7 @@ classifiers = [
 dependencies = [
   "matplotlib",
   "numpy",
+  "pcat",
   "scipy",
   "tdpy",
   "miletos",

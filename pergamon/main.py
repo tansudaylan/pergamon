@@ -12,6 +12,7 @@ import ephesos
 import nicomedia
 import miletos
 import tdpy
+from pcat import plot_population_grid
 from tdpy import summgene 
 from tdpy.paths import make_directory
 from tdpy.population import subset_population
@@ -2043,7 +2044,7 @@ def init( \
                 
                 pathbase = gdat.pathvisu
 
-                tdpy.plot_grid( \
+                plot_population_grid( \
                                gdat.listlablfeatcomm, \
                                listpara=gdat.listsampcomm, \
                                strgextn=strgextn, \
