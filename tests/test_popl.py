@@ -25,7 +25,7 @@ def test_optional_correlation_search_calls_pcat_backed_sampler(monkeypatch, tmp_
         calls.append(args)
         return {'angle': np.full(20, np.pi / 2.), 'intercept': np.zeros(20)}
 
-    monkeypatch.setattr(module.tdpy, 'samp', fake_sampler)
+    monkeypatch.setattr(module, 'sample_posterior', fake_sampler)
     pergamon.init(
         typeanls='defa', dictpopl={'pop': {'radistar': np.array([1., 1.2, 1.4]),
                                            'massstar': np.array([1., 1.1, 1.3])}},

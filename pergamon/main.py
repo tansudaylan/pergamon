@@ -14,6 +14,7 @@ import nicomedia
 import miletos
 import tdpy
 from pcat import plot_population_grid
+from pcat.fixed import sample_posterior
 from tdpy import summgene 
 from tdpy.paths import make_directory
 from tdpy.population import subset_population
@@ -2249,7 +2250,7 @@ def init( \
                     
                     # sample from a linear model
                     strgextn = 'pop%d_feat%d_%d' % (k, n, m)
-                    dictpost = tdpy.samp(gdat, numbsampwalk, retr_llik_corr,
+                    dictpost = sample_posterior(gdat, numbsampwalk, retr_llik_corr,
                                          ['angle', 'intercept'], listlablpara, listscalpara,
                                          listminmpara, listmaxmpara, pathbase=gdat.pathvisu,
                                          numbsampburnwalkinit=numbsampburnwalk,
