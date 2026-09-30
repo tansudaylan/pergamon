@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Compare two clearly labeled simulated stellar populations with Pergamon."""
 
+from tdpy.verbosity import print
+
 import contextlib
 import io
 import shutil
