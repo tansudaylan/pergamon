@@ -10,6 +10,14 @@ The package is intended for population-level analysis of astrophysical systems, 
 
 Pergamon compares astrophysical samples across measured or inferred properties, examines one- and two-dimensional distributions, identifies feature relationships, and generates summary figures that expose population differences.
 
+## Occurrence rates
+
+`pergamon.estimate_occurrence_rate(detected, detection_efficiency)` estimates the fraction of surveyed targets hosting an event. Provide one zero-or-one detection flag and one independently determined detection probability per target. For example, detections `[1, 0, 0]` and efficiencies `[1, 0.5, 0.5]` yield a maximum-likelihood occurrence fraction of about 0.67. These numbers illustrate the calculation and are not observational results. `pergamon.log_likelihood_occurrence_rate` evaluates the same model for posterior inference.
+
+The calculation assumes at most one event per target, independent targets, known detection efficiencies, and no false positives. Classification alone does not establish detection efficiency. `pergamon.partition_classified_population` groups relevant and irrelevant targets by positive and negative classifications, including true and false positives and negatives, without inferring an occurrence rate from those groups.
+
+For compact-object companion populations, `pergamon.compute_photometric_signatures` predicts Doppler beaming, ellipsoidal variation, and self-lensing amplitudes from orbital and stellar properties. `pergamon.derive_compact_object_features` also supplies transit duration, orbital scale, and Schwarzschild radius. These are model-derived features rather than detections or survey completeness measurements.
+
 ## Installation
 
 ```bash

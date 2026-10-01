@@ -20,7 +20,9 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Astronomy"
 ]
 dependencies = [
+  "chalcedon",
   "matplotlib",
+  "nicomedia",
   "numpy",
   "pcat",
   "scipy",

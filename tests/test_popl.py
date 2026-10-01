@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from types import SimpleNamespace
 import importlib
 
@@ -87,3 +88,58 @@ def test_retr_subp_accepts_python_list_indices():
     np.testing.assert_array_equal(dictpopl['small']['radistar'][0], np.array([1.0, 3.0]))
     np.testing.assert_array_equal(dictindxsamp['pop']['small'], np.array([0, 2]))
     assert dictnumbsamp['small'] == 2
+
+
+def test_classified_population_partition_preserves_target_ids():
+    relevant = [7, 2]
+    groups = pergamon.partition_classified_population(
+        relevant=relevant, irrelevant=[5, 9], positive=[7, 5], negative=[2, 9],
+    )
+    expected = {
+        're': [7, 2], 'ir': [5, 9], 'po': [7, 5], 'ne': [2, 9],
+        'trpo': [7], 'trne': [9], 'flpo': [5], 'flne': [2],
+    }
+    assert set(groups) == set(expected)
+    assert groups['re'] is relevant
+    for name, indices in expected.items():
+        np.testing.assert_array_equal(groups[name], indices)
+
+
+def test_occurrence_rate_accounts_for_target_detection_efficiency():
+    detections = [1, 0, 0]
+    efficiencies = [1.0, 0.5, 0.5]
+    assert pergamon.estimate_occurrence_rate(detections, efficiencies) == pytest.approx(2 / 3, abs=1e-5)
+    assert pergamon.log_likelihood_occurrence_rate(0.5, [1, 0], [1.0, 0.5]) == pytest.approx(
+        np.log(0.5 * 0.75)
+    )
+    assert pergamon.estimate_occurrence_rate([0, 0], [1.0, 0.5]) == 0.0
+    assert pergamon.estimate_occurrence_rate([1, 1], [1.0, 0.5]) == 1.0
+
+
+def test_occurrence_rate_rejects_uninformative_or_invalid_survey_data():
+    assert pergamon.log_likelihood_occurrence_rate(1.1, [0], [1.0]) == -np.inf
+    with pytest.raises(ValueError, match="probabilities"):
+        pergamon.estimate_occurrence_rate([0], [1.1])
+    with pytest.raises(ValueError, match="positive detection efficiency"):
+        pergamon.estimate_occurrence_rate([0], [0.0])
+    with pytest.raises(ValueError, match="zero detection efficiency"):
+        pergamon.estimate_occurrence_rate([1], [0.0])
+    with pytest.raises(ValueError, match="zeros and ones"):
+        pergamon.estimate_occurrence_rate([2], [1.0])
+
+
+def test_compact_object_population_features_preserve_reference_values():
+    signatures = pergamon.compute_photometric_signatures(
+        np.array([0.3, 30.0])[:, None],  # [day]
+        np.array([5.0, 180.0])[None, :],  # [solar mass]
+    )
+    np.testing.assert_allclose(
+        signatures['beaming'], [[6.333641, 23.529050], [1.364542, 5.069180]], rtol=1e-6,
+    )
+    np.testing.assert_allclose(
+        signatures['self_lensing'], [[0.291121, 32.625129], [6.272018, 702.887070]],
+        rtol=1e-6,
+    )
+    features = pergamon.derive_compact_object_features(1.0, 10.0, 5.0, 1.0)
+    assert set(features) == {'amplslenmodl', 'duratrantotlmodl', 'smaxmodl', 'radischw'}
+    np.testing.assert_allclose(features['amplslenmodl'], [3.015272], rtol=1e-6)
