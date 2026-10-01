@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pergamon"
 version = "0.1.0"
-description = "Population analysis, visualization, and modeling pipeline for exoplanet and time-domain astrophysics."
+description = "Population analysis and visualization for exoplanet and time-domain astrophysics."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
@@ -21,7 +21,6 @@ classifiers = [
 ]
 dependencies = [
   "astropy",
-  "chalcedon",
   "matplotlib",
   "nicomedia",
   "numpy",

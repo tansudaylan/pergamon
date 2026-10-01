@@ -128,18 +128,6 @@ def test_occurrence_rate_rejects_uninformative_or_invalid_survey_data():
         pergamon.estimate_occurrence_rate([2], [1.0])
 
 
-def test_compact_object_population_features_preserve_reference_values():
-    signatures = pergamon.compute_photometric_signatures(
-        np.array([0.3, 30.0])[:, None],  # [day]
-        np.array([5.0, 180.0])[None, :],  # [solar mass]
-    )
-    np.testing.assert_allclose(
-        signatures['beaming'], [[6.333641, 23.529050], [1.364542, 5.069180]], rtol=1e-6,
-    )
-    np.testing.assert_allclose(
-        signatures['self_lensing'], [[0.291121, 32.625129], [6.272018, 702.887070]],
-        rtol=1e-6,
-    )
-    features = pergamon.derive_compact_object_features(1.0, 10.0, 5.0, 1.0)
-    assert set(features) == {'amplslenmodl', 'duratrantotlmodl', 'smaxmodl', 'radischw'}
-    np.testing.assert_allclose(features['amplslenmodl'], [3.015272], rtol=1e-6)
+def test_compact_object_model_functions_are_not_population_package_exports():
+    assert not hasattr(pergamon, 'compute_photometric_signatures')
+    assert not hasattr(pergamon, 'derive_compact_object_features')

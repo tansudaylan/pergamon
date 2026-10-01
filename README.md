@@ -28,7 +28,7 @@ The archive supplies published transmission, eclipse, and direct-imaging spectru
 
 The calculation assumes at most one event per target, independent targets, known detection efficiencies, and no false positives. Classification alone does not establish detection efficiency. `pergamon.partition_classified_population` groups relevant and irrelevant targets by positive and negative classifications, including true and false positives and negatives, without inferring an occurrence rate from those groups.
 
-For compact-object companion populations, `pergamon.compute_photometric_signatures` predicts Doppler beaming, ellipsoidal variation, and self-lensing amplitudes from orbital and stellar properties. `pergamon.derive_compact_object_features` also supplies transit duration, orbital scale, and Schwarzschild radius. These are model-derived features rather than detections or survey completeness measurements.
+For compact-object companion populations, Miletos derives Doppler-beaming, ellipsoidal-variation, and self-lensing amplitudes, along with transit duration, orbital scale, and Schwarzschild radius, through Ephesos. Pergamon reads these model-derived values for population-level comparisons and occurrence-rate estimation. They are not detections or measurements of survey completeness.
 
 ## Installation
 
