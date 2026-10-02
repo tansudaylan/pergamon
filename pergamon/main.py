@@ -841,8 +841,8 @@ def init( \
         if gdat.typeanls == 'qtce':
             
             # base path for the faint-star search
-            pathfstr = os.environ.get('FAINTSTARS_DATA_PATH',
-                                     os.path.join(os.getcwd(), 'data', 'external', 'FaintStars'))
+            pathfstr = os.path.join(os.environ['FAINTSTARS_PATH'], 'data') if os.environ.get('FAINTSTARS_PATH') else \
+                os.path.join(os.getcwd(), 'data', 'external', 'FaintStars')
             if not os.path.exists(pathfstr):
                 pathfstr = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'external', 'FaintStars')
             if not os.path.exists(pathfstr):
