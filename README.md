@@ -1,14 +1,14 @@
 # Pergamon
 
-Pergamon is a population-analysis and visualization package for astrophysical samples. Its scientific role is to take a population dictionary of sample properties, summarize the key features, visualize the one- and two-dimensional marginal distributions, and diagnose how those populations compare to one another.
+Astrophysical populations are easier to compare when their assumptions and distributions are visible. Pergamon takes sample properties, summarizes them, and plots one- and two-dimensional distributions side by side.
 
 ## Purpose
 
-The package is intended for population-level analysis of astrophysical systems, including comparisons across samples, feature extraction, and diagnostic visualization of multi-dimensional parameter distributions. It is especially suited to checking whether samples differ in physically meaningful ways and produces summary plots that make the underlying population structure visible.
+Pergamon supports population-level analysis of astrophysical systems, including comparisons across samples and feature extraction. Its summary plots help us ask whether observed differences are physically meaningful.
 
 ## Population analysis
 
-Pergamon compares astrophysical samples across measured or inferred properties, examines one- and two-dimensional distributions, identifies feature relationships, and generates summary figures that expose population differences.
+Pergamon compares astrophysical samples across measured or inferred properties, examines one- and two-dimensional distributions, and generates figures that make relationships between features easier to see.
 
 ## Exoplanet catalogs
 
