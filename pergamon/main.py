@@ -1055,16 +1055,6 @@ def init( \
     # first item is becomes the y-axis, the second item becomes the x-axis
     gdat.listnameordrpair = [['radicomp', 'tmptplan']]
 
-    # to be deleted?
-    #if gdat.typeanls == 'NASA_Exoplanet_Archive':
-    #    gdat.lablpoplmast = 'Exoplanets'
-    #if gdat.typeanls.startswith('hostexar'):
-    #    gdat.lablpoplmast = 'Exoplanet hosts'
-    #if gdat.typeanls.startswith('toii'):
-    #    gdat.lablpoplmast = 'TOIs'
-    #if gdat.typeanls.startswith('hosttoii'):
-    #    gdat.lablpoplmast = 'TOI Hosts'
-    
     if gdat.namefeatlablsamp is None and not booldictinpt:
         if gdat.typeanls.startswith('hosttoii') or gdat.typeanls.startswith('hostexar'):
             gdat.namefeatlablsamp = 'namestar'
