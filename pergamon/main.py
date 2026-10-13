@@ -10,8 +10,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
 import ephesos
-import nicomedia
-import miletos
+from pergamon import catalogs as population_catalogs
 import tdpy
 from pcat import plot_population_grid
 from pcat.fixed import sample_posterior
@@ -414,19 +413,19 @@ def init( \
         # get population features
         if gdat.typeanls == 'NASA_Exoplanet_Archive':
             # features of confirmed exoplanets
-            gdat.dictpopl['totl'] = nicomedia.retr_dictexar()
+            gdat.dictpopl['totl'] = population_catalogs.retr_dictexar()
             
         elif gdat.typeanls.startswith('toii'):
             # features of TOIs
-            gdat.dictpopl['totl'] = nicomedia.retr_dicttoii()
+            gdat.dictpopl['totl'] = population_catalogs.retr_dicttoii()
 
         elif gdat.typeanls.startswith('hosttoii'):
             # features of hosts of TOIs
-            gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('toii')
+            gdat.dictpopl['totl'] = population_catalogs.retr_dicthostplan('toii')
         
         elif gdat.typeanls.startswith('hostexar'):
             # features of hosts of exoplanets on NASA Exoplanet Archive
-            gdat.dictpopl['totl'] = nicomedia.retr_dicthostplan('exar')
+            gdat.dictpopl['totl'] = population_catalogs.retr_dicthostplan('exar')
             
     else:
         if gdat.lablnumbsamp is None and gdat.lablsampgene is None:
@@ -639,12 +638,12 @@ def init( \
             gdat.dictpopl['totl'][namefeat] = [[], '']
             gdat.dictpopl['totl'][namefeat][0] = np.array(dictpopl[namefeat])
         
-        gdat.dicttoii = nicomedia.retr_dicttoii()
+        gdat.dicttoii = population_catalogs.retr_dicttoii()
         numbtici = gdat.dictpopl['totl']['TICID'].size
         indxtici = np.arange(numbtici)
         indx = []
         for k in indxtici:
-            toii = nicomedia.retr_toiitici(gdat.dictpopl['totl']['TICID'][k], typeverb=gdat.typeverb, dicttoii=gdat.dicttoii)
+            toii = population_catalogs.retr_toiitici(gdat.dictpopl['totl']['TICID'][k], typeverb=gdat.typeverb, dicttoii=gdat.dicttoii)
             if toii is not None:    
                 indx.append(k)
         indx = np.array(indx)
@@ -752,6 +751,8 @@ def init( \
         gdat.dictpopl['totl']['fractimeobsv'] = np.zeros_like(gdat.dictpopl['totl']['rascstar']) - 1.
         for nn in tqdm(range(len(gdat.dictpopl['totl']['declstar']))):
             if nn in dictindxtoii[namesubpthis]:
+                import miletos
+
                 dictmile = miletos.main.init( \
                           # provide the RA for the target
                           rasctarg=gdat.dictpopl['totl']['rascstar'][nn], \

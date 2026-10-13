@@ -3,6 +3,7 @@ from pathlib import Path
 
 import matplotlib.image as mpimg
 import numpy as np
+import pytest
 
 
 EXAMPLE_SCRIPT = (
@@ -33,3 +34,13 @@ def test_simulated_stellar_populations_example_runs_pipeline(tmp_path, capsys):
     output = capsys.readouterr().out
     assert "Reading from" in output
     assert f"Writing to {output_path}..." in output
+
+
+def test_simulated_stellar_populations_bokeh_variant_writes_html(tmp_path):
+    pytest.importorskip("bokeh")
+    output_path = example.run_bokeh_example(tmp_path / "stellar_populations.html")
+
+    assert output_path.is_file()
+    html = output_path.read_text(encoding="utf-8")
+    assert "Reference" in html
+    assert "Radius-enhanced" in html

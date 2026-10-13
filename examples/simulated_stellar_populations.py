@@ -3,6 +3,7 @@
 
 from tdpy.verbosity import print
 
+import argparse
 import contextlib
 import io
 import shutil
@@ -17,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import pergamon
-from tdpy.cli import parse_plot_arguments
+from tdpy.cli import add_plot_arguments
 
 
 def make_simulated_populations() -> dict:
@@ -81,12 +82,50 @@ def run_example(output_path: Path) -> dict:
     return result
 
 
+def run_bokeh_example(output_path: Path) -> Path:
+    """Write the deterministic mass-radius comparison as interactive HTML."""
+    from bokeh.models import ColumnDataSource, HoverTool
+    from bokeh.plotting import figure
+    from tdpy.plotting import save_bokeh_html
+
+    populations = make_simulated_populations()
+    plot = figure(
+        title="Simulated stellar populations",
+        width=760,
+        height=480,
+        sizing_mode="stretch_width",
+        tools="pan,wheel_zoom,box_zoom,reset,save",
+    )
+    for name, label, color in (
+        ("reference", "Reference", "#1B6CA8"),
+        ("enhanced", "Radius-enhanced", "#D18B00"),
+    ):
+        mass = populations[name]["massstar"][0]
+        radius = populations[name]["radistar"][0]
+        source = ColumnDataSource({"mass": mass, "radius": radius})
+        plot.scatter(
+            "mass", "radius", source=source, size=8, alpha=0.75,
+            color=color, legend_label=label,
+        )
+    plot.add_tools(HoverTool(tooltips=[("Mass [M_sun]", "@mass{0.000}"), ("Radius [R_sun]", "@radius{0.000}")]))
+    plot.xaxis.axis_label = "Stellar mass [M_sun]"
+    plot.yaxis.axis_label = "Stellar radius [R_sun]"
+    plot.grid.visible = False
+    plot.legend.location = "top_left"
+    return Path(save_bokeh_html(plot, output_path, title="Simulated stellar populations"))
+
+
 def main() -> int:
-    arguments = parse_plot_arguments(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_plot_arguments(parser)
+    parser.add_argument("--bokeh", action="store_true", help="also write interactive HTML")
+    arguments = parser.parse_args()
     output_path = Path(__file__).with_name(
         f"simulated_stellar_populations.{arguments.typefileplot}"
     )
     run_example(output_path)
+    if arguments.bokeh:
+        run_bokeh_example(Path(__file__).with_name("simulated_stellar_populations.html"))
     return 0
 
 

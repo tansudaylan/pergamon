@@ -21,15 +21,20 @@ classifiers = [
 ]
 dependencies = [
   "astropy",
+  "chalcedon",
   "matplotlib",
-  "nicomedia",
   "numpy",
+  "pandas",
   "pcat",
   "scipy",
   "tdpy",
-  "miletos",
   "ephesos"
 ]
+
+[project.optional-dependencies]
+analysis = ["miletos"]
+bokeh = ["bokeh>=3.4"]
+vetting = ["troia"]
 
 [tool.setuptools.packages.find]
 include = ["pergamon*"]

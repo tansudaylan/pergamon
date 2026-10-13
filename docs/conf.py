@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 project = "Pergamon"
 author = "Pergamon contributors"
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon"]
-autodoc_mock_imports = ["ephesos", "miletos", "nicomedia", "pcat", "tdpy"]
+autodoc_mock_imports = ["ephesos", "miletos", "pcat", "tdpy"]
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
