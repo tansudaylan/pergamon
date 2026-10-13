@@ -50,17 +50,7 @@ def retr_subp(dictpopl, namepoplinit, namepoplfinl, indx, dictnumbsamp=None, dic
         print('Warning! indx is zero.')
     
 
-def retr_llik_corr(para, gdat):
-    """Fit a line at the residual scale supplied by the population data."""
-    angle, intercept = para
-    if np.isclose(np.sin(angle), 0.):
-        return -np.inf
-    slope = -1. / np.tan(angle)
-    variance = gdat.tempsecostdv**2 + (slope * gdat.tempfrststdv)**2
-    if np.any(variance <= 0.):
-        return -np.inf
-    model = slope * gdat.tempfrst + intercept / np.sin(angle)
-    return -0.5 * np.sum((gdat.tempseco - model)**2 / variance + np.log(2. * np.pi * variance))
+retr_llik_corr = tdpy.retr_llik_corr
 
 
 def init( \
