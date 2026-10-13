@@ -1,14 +1,14 @@
 # Pergamon
 
-Astrophysical populations are easier to compare when their assumptions and distributions are visible. Pergamon takes sample properties, summarizes them, and plots one- and two-dimensional distributions side by side.
+I use Pergamon when the question moves from one system to a population. How do the samples differ? Which quantities were measured, which were inferred, and which targets were never likely to be detected? A crowded scatter plot deserves a closer look at how the points got there.
 
 ## Purpose
 
-I use Pergamon for population-level analysis of astrophysical systems, including comparisons across samples and feature extraction. Its summary plots help me ask whether observed differences are physically meaningful.
+Pergamon compares astrophysical samples, builds catalog tables, and makes their one- and two-dimensional distributions visible. I keep the measurement provenance and selection assumptions alongside those comparisons.
 
 ## Population analysis
 
-Pergamon compares astrophysical samples across measured or inferred properties, examines one- and two-dimensional distributions, and generates figures that make relationships between features easier to see.
+Pass measured or inferred sample properties to the plotting functions. Occurrence calculations additionally need independently determined detection efficiencies. Counting the interesting objects is the easy part. Accounting for the ones the survey could have missed takes more work.
 
 ## Exoplanet catalogs
 
