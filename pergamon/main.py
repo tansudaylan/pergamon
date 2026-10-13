@@ -17,24 +17,9 @@ from pcat import plot_population_grid
 from pcat.fixed import sample_posterior
 from tdpy import summgene 
 from tdpy.paths import make_directory
-from tdpy.population import subset_population
+from tdpy.population import partition_classified_population, subset_population
 
 from .paths import get_data_path, get_repository_path, get_visuals_path
-
-
-def partition_classified_population(relevant, irrelevant, positive, negative):
-    """Group target indices by true relevance and inferred classification."""
-
-    return {
-        're': relevant,
-        'ir': irrelevant,
-        'po': positive,
-        'ne': negative,
-        'trpo': np.intersect1d(positive, relevant),
-        'trne': np.intersect1d(negative, irrelevant),
-        'flpo': np.intersect1d(positive, irrelevant),
-        'flne': np.intersect1d(negative, relevant),
-    }
 
 
 def retr_subp(dictpopl, namepoplinit, namepoplfinl, indx, dictnumbsamp=None, dictindxsamp=None):
