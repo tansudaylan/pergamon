@@ -629,7 +629,7 @@ def init( \
 
     if gdat.typeanls.startswith('vetting'):
         
-        pathbase = os.environ['DATA'] + '/external/FaintStars/metrics/'
+        pathbase = os.path.join(os.environ['PERGAMON_PATH'], 'data', 'external', 'FaintStars', 'metrics') + os.sep
         
         path = pathbase + 'metrics_sc63.csv'
         print('Reading from %s...' % path)

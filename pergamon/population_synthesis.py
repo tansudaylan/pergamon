@@ -262,17 +262,6 @@ def retr_dictpoplstarcomp( \
     dictstarnumbsamp[namepoplstartotl] = numbsyst
     dictpopl['star'][namepoplstartotl] = dictstar
 
-    def _legacy_alias_popl(popl):
-        out = dict()
-        for key, val in popl.items():
-            if isinstance(val, list) and len(val) == 2:
-                out[key] = val[0]
-            elif isinstance(val, dict):
-                out[key] = _legacy_alias_popl(val)
-            else:
-                out[key] = val
-        return out
-
     # total mass
     dictstar['masssyst'] = [[], []]
     dictstar['masssyst'][0] = np.copy(dictstar['massstar'][0])
@@ -984,17 +973,6 @@ def retr_dictpoplstarcomp( \
                         print(value)
                         raise Exception('dictpopl is not properly defined.')
 
-    def _flatten_legacy_alias(popl):
-        out = dict()
-        for key, val in popl.items():
-            if isinstance(val, list) and len(val) == 2:
-                out[key] = val[0]
-            elif isinstance(val, dict):
-                out[key] = _flatten_legacy_alias(val)
-            else:
-                out[key] = val
-        return out
-
     # Build legacy key aliases from the canonical population names actually present in the dict.
     # The alias objects are intentionally flattened to the historical raw-array contract used by the tests.
     for namepopl, dictnamepopl in list(dictpopl.items()):
@@ -1004,19 +982,19 @@ def retr_dictpoplstarcomp( \
             if namepopl == 'star' and canon_name.startswith('star_') and canon_name.endswith('_All'):
                 legacy_name = 'star' + canon_name[len('star_'):-len('_All')].replace('SyntheticPopulation', 'Synthetic').replace('Population', '') + 'totl'
                 if legacy_name != canon_name:
-                    dictnamepopl[legacy_name] = _flatten_legacy_alias(dictnamepopl[canon_name])
+                    dictnamepopl[legacy_name] = tdpy.population_feature_values(dictnamepopl[canon_name])
             elif namepopl == 'star' and canon_name.startswith('star_') and canon_name.endswith('_Occurrent'):
                 legacy_name = 'star' + canon_name[len('star_'):-len('_Occurrent')].replace('SyntheticPopulation', 'Synthetic').replace('Population', '') + 'occu'
                 if legacy_name != canon_name:
-                    dictnamepopl[legacy_name] = _flatten_legacy_alias(dictnamepopl[canon_name])
+                    dictnamepopl[legacy_name] = tdpy.population_feature_values(dictnamepopl[canon_name])
             elif namepopl == 'comp' and canon_name.startswith('compstar_') and canon_name.endswith('_All'):
                 legacy_name = 'compstar' + canon_name[len('compstar_'):-len('_All')].replace('SyntheticPopulation', 'Synthetic').replace('Population', '') + 'totl'
                 if legacy_name != canon_name:
-                    dictnamepopl[legacy_name] = _flatten_legacy_alias(dictnamepopl[canon_name])
+                    dictnamepopl[legacy_name] = tdpy.population_feature_values(dictnamepopl[canon_name])
             elif namepopl == 'comp' and canon_name.startswith('compstar_') and canon_name.endswith('_Transiting'):
                 legacy_name = 'compstar' + canon_name[len('compstar_'):-len('_Transiting')].replace('SyntheticPopulation', 'Synthetic').replace('Population', '') + 'tran'
                 if legacy_name != canon_name:
-                    dictnamepopl[legacy_name] = _flatten_legacy_alias(dictnamepopl[canon_name])
+                    dictnamepopl[legacy_name] = tdpy.population_feature_values(dictnamepopl[canon_name])
 
     dictnico['dictpopl'] = dictpopl
     dictnico['dictindx'] = dictindx
