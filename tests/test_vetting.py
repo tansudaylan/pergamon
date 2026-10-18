@@ -51,9 +51,7 @@ def test_summary_retains_prediction_shape_validation():
         })
 
 
-def test_default_workflow_preserves_troia_arguments_and_output(monkeypatch, tmp_path):
-    import troia
-
+def test_default_workflow_preserves_analysis_arguments_and_output(monkeypatch, tmp_path):
     monkeypatch.setenv('PERGAMON_PATH', str(tmp_path))
     captured = {}
 
@@ -61,7 +59,7 @@ def test_default_workflow_preserves_troia_arguments_and_output(monkeypatch, tmp_
         captured.update(arguments)
         return arguments
 
-    monkeypatch.setattr(troia, 'init', run)
+    monkeypatch.setattr(vetting.vetting_workflow, 'init', run)
     result = pergamon.run_candidate_vetting(pathbase=str(tmp_path), strgcnfg='TransitVet')
 
     assert result == captured
@@ -73,8 +71,6 @@ def test_default_workflow_preserves_troia_arguments_and_output(monkeypatch, tmp_
 
 @pytest.mark.parametrize('output', [{'value': 1}, SimpleNamespace(value=1), 3])
 def test_explicit_inputs_and_output_conventions_are_preserved(monkeypatch, tmp_path, output):
-    import troia
-
     monkeypatch.setenv('PERGAMON_PATH', str(tmp_path))
     arguments = {'typesyst': 'StellarBinary', 'custom': [1, 2]}
     captured = {}
@@ -83,8 +79,8 @@ def test_explicit_inputs_and_output_conventions_are_preserved(monkeypatch, tmp_p
         captured.update(supplied)
         return output
 
-    monkeypatch.setattr(troia, 'init', run)
-    result = vetting.init(dicttroiinpt=arguments)
+    monkeypatch.setattr(vetting.vetting_workflow, 'init', run)
+    result = vetting.init(dictinpt=arguments)
 
     assert captured == arguments
     assert result == ({'result': 3} if output == 3 else {'value': 1})
@@ -118,8 +114,8 @@ def test_vetting_paths_require_the_new_repository_environment(monkeypatch):
         vetting.get_repository_path()
 
 
-def test_full_troia_population_workflow_with_explicit_deterministic_analysis_responses(monkeypatch, tmp_path):
-    import troia.main as backend
+def test_full_population_workflow_with_explicit_deterministic_analysis_responses(monkeypatch, tmp_path):
+    import pergamon.vetting_workflow as backend
 
     monkeypatch.setenv('PERGAMON_PATH', str(tmp_path))
     calls = []
@@ -132,7 +128,7 @@ def test_full_troia_population_workflow_with_explicit_deterministic_analysis_res
             'dictoutlperi': {'boolposi': selected, 'minmfrddtimeoutlsort': [0.05 if selected else 0.5]},
         }
 
-    monkeypatch.setattr(backend.miletos, 'init', analyze)
+    monkeypatch.setattr(backend._get_miletos(), 'init', analyze)
     configuration = {
         'pathbase': str(tmp_path / 'run'), 'typesyst': 'PlanetarySystem',
         'listlablinst': [['TESS'], []], 'liststrgtypedata': [['simutargsynt'], []],
@@ -140,7 +136,7 @@ def test_full_troia_population_workflow_with_explicit_deterministic_analysis_res
     }
     random_state = np.random.get_state()
     try:
-        result = vetting.run_candidate_vetting(dicttroiinpt=configuration)
+        result = vetting.run_candidate_vetting(dictinpt=configuration)
     finally:
         np.random.set_state(random_state)
     summary = vetting.summarize_vetting_result(result)

@@ -20,11 +20,9 @@ stored under ``data/`` and generated figures under ``visuals/``.
 Candidate vetting
 -----------------
 
-Sardis's functionality now lives in ``pergamon.vetting``. Use
-``run_candidate_vetting`` instead of ``sardis.init``, and set ``PERGAMON_PATH``
-instead of ``SARDIS_PATH``. Explicit base paths, configuration directories,
-backend arguments, classification summaries, and return conventions are
-preserved. The module retains ``init`` and ``retr_pathsard`` aliases.
+Candidate classification lives in ``pergamon.vetting`` and uses Miletos for
+target-level time-series analysis. Install the optional extra and run the
+synthetic workflow with:
 
 .. code-block:: console
 
@@ -32,8 +30,7 @@ preserved. The module retains ``init`` and ``retr_pathsard`` aliases.
    python examples/synthetic_vetting_performance.py --typefileplot png
    python examples/synthetic_vetting_performance.py --typefileplot png --bokeh
 
-This preserves the full Troia workflow, including its configured Miletos
-analysis. The example can perform posterior inference for 100 targets.
+The workflow can perform posterior inference for 100 synthetic targets.
 Rendering can also use an explicitly supplied result dictionary through
 ``run_example(output_path, result=...)`` without running inference.
 
@@ -41,6 +38,19 @@ Rendering can also use an explicitly supplied result dictionary through
 precision, recall, and a positive-truth mask. Prediction vectors must match
 the truth labels. Classification alone does not measure completeness or
 occurrence. The generic population ``pergamon.init`` function is unchanged.
+
+Compact-object signatures
+-------------------------
+
+Pergamon exposes Miletos' Doppler-beaming, ellipsoidal-variation, and
+self-lensing amplitude calculations. Run the deterministic example with:
+
+.. code-block:: console
+
+   python examples/compact_object_signatures.py --typefileplot png
+
+Install ``python -m pip install -e '.[vetting,bokeh]'`` to also write the
+interactive period-amplitude comparison.
 
 Occurrence-rate calculation
 ---------------------------

@@ -72,13 +72,17 @@ The metric ranks relative observability under its assumed thermal-emission model
 
 ## Candidate vetting
 
-Sardis's workflow and classification summaries now live in `pergamon.vetting`. Use `pergamon.run_candidate_vetting(typesyst="PlanetarySystem", dicttroiinpt=None, strgcnfg=None, pathbase=None)` in place of `sardis.init`. Pergamon's existing population-analysis `init` is unchanged. The absorbed module also retains `init` and `retr_pathsard` aliases, along with the generic repository-path helpers.
+Sardis's workflow and classification summaries now live in `pergamon.vetting`. Use `pergamon.run_candidate_vetting(typesyst="PlanetarySystem", dictinpt=None, strgcnfg=None, pathbase=None)` in place of `sardis.init`. Pergamon's existing population-analysis `init` is unchanged. The vetting module also retains `init` and `retr_pathsard` aliases, along with the generic repository-path helpers.
 
-The workflow passes supplied `dicttroiinpt` arguments unchanged to Troia and preserves its dictionary, attribute-object, and other return conventions. With no supplied dictionary, it retains the TESS synthetic-target defaults. `vetting_paths` uses `PERGAMON_PATH` in place of `SARDIS_PATH`, keeps the historical path keys, and creates configuration-specific `simulation` and `observed` directories beneath the selected base. Explicit `pathbase` and `strgcnfg` still work as before.
+The workflow passes supplied `dictinpt` arguments unchanged to Miletos and preserves dictionary, attribute-object, and other return conventions. With no supplied dictionary, it uses TESS synthetic-target defaults. `vetting_paths` uses `PERGAMON_PATH` and creates configuration-specific `simulation` and `observed` directories beneath the selected base. Explicit `pathbase` and `strgcnfg` still work.
+
+Existing callers can supply `dicttroiinpt` as an alias for `dictinpt`. Supply
+only one of these arguments. The dictionary returned by `vetting_paths` retains
+the historical `pathbasesard` key alongside `pathbasepergamon`.
 
 `summarize_vetting_result` returns classifier labels, confusion matrices, precision, recall, and the positive-truth mask. Confusion matrices use rows for negative and positive truth, and columns for negative and positive decisions. Precision and recall remain zero when their denominator is zero. All prediction vectors must match the truth-label shape. Classification does not establish survey completeness or an occurrence rate.
 
-Install the optional Troia backend and run the transferred example:
+Install the optional Miletos-backed workflow and run the example:
 
 ```bash
 python -m pip install -e '.[vetting,bokeh]'
@@ -88,7 +92,7 @@ python examples/synthetic_vetting_performance.py --typefileplot png --bokeh
 
 ![Transferred synthetic candidate-vetting summary](examples/synthetic_vetting_performance.png)
 
-The static figure is the retained Sardis example artifact. The executable example preserves the full Troia/Miletos analysis, which can run posterior inference for 100 synthetic targets. It is not a lightweight demonstration and does not report observed candidate performance. Both static and interactive rendering were verified with explicit supplied results. A separate equivalence check used the same seeded population and deterministic test responses from Miletos; truth labels, decisions, confusion matrices, precision, and recall matched exactly before Sardis was removed. No new full posterior run is represented by the retained figure.
+The static figure is the retained Sardis example artifact. The executable example runs the full Miletos analysis and can perform posterior inference for 100 synthetic targets. It is not a lightweight demonstration and does not report observed candidate performance. Both static and interactive rendering were verified with explicit supplied results. A separate equivalence check used the same seeded population and deterministic test responses from Miletos; truth labels, decisions, confusion matrices, precision, and recall matched exactly before Sardis was removed. No new full posterior run is represented by the retained figure.
 
 ## Occurrence rates
 
@@ -108,7 +112,7 @@ export PERGAMON_PATH=/path/to/pergamon
 
 `PERGAMON_PATH` identifies the repository root. Keep runtime inputs in `data/` and generated pipeline outputs in `visuals/`; both directories are ignored by Git.
 
-Install `python -m pip install -e '.[analysis]'` for the optional Miletos-backed target-analysis branch. Population summaries, catalog adapters, and occurrence calculations do not require Miletos. The `vetting` extra supplies Troia and its analysis dependencies separately.
+Install `python -m pip install -e '.[analysis]'` for optional Miletos-backed target analysis, or `python -m pip install -e '.[vetting]'` for candidate vetting. Population summaries, catalog adapters, and occurrence calculations do not require Miletos.
 
 ## Example workflow
 

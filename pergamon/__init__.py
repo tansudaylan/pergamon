@@ -9,5 +9,15 @@ from .occurrence import (
 	estimate_occurrence_rate,
 	log_likelihood_occurrence_rate,
 )
-from .paths import get_data_path, get_repository_path, get_visuals_path
-from .vetting import run_candidate_vetting, summarize_vetting_result, vetting_paths, retr_pathsard
+from .paths import get_data_path, get_repository_path, get_visuals_path, retr_pathgaia
+from .vetting import (
+	mile_work,
+	retr_dictderi_effe,
+	retr_pathvetting,
+	run_candidate_vetting,
+	summarize_vetting_result,
+	synthetic_target_truth,
+	validated_classification,
+	vetting_paths,
+	retr_pathsard,
+)

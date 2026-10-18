@@ -34,7 +34,7 @@ dependencies = [
 [project.optional-dependencies]
 analysis = ["miletos"]
 bokeh = ["bokeh>=3.4"]
-vetting = ["troia"]
+vetting = ["miletos"]
 
 [tool.setuptools.packages.find]
 include = ["pergamon*"]

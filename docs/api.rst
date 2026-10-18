@@ -7,9 +7,18 @@ Candidate vetting
 .. automodule:: pergamon.vetting
    :members: run_candidate_vetting, summarize_vetting_result, vetting_paths, retr_pathsard, init
 
-The absorbed workflow retains Sardis's arguments and return conventions.
 ``pergamon.init`` remains the population-analysis entry point; use
 ``pergamon.run_candidate_vetting`` or ``pergamon.vetting.init`` for vetting.
+
+.. automodule:: pergamon.vetting_workflow
+   :members: synthetic_target_truth, validated_classification, retr_pathvetting,
+             retr_dictderi_effe, mile_work, init
+
+Compact-object signatures
+-------------------------
+
+.. automodule:: pergamon.signatures
+   :members: compute_photometric_signatures
 
 Occurrence inference
 --------------------
@@ -36,7 +45,7 @@ Dictionary catalog adapters
    :members: retr_toiitici, retr_dictpopltic8, retr_dictpoplrvel, retr_dicthostplan, retr_dicttoii, retr_toiifstr, retr_dictexar
 
 Inherited population synthesis
------------------------------
+------------------------------
 
 .. automodule:: pergamon.population_synthesis
    :members: retr_dictpoplstarcomp
@@ -51,4 +60,4 @@ Paths
 -----
 
 .. automodule:: pergamon.paths
-   :members: get_repository_path, get_data_path, get_visuals_path
+   :members: get_repository_path, get_data_path, get_visuals_path, retr_pathgaia

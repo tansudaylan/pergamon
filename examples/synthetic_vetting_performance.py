@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate Pergamon candidate vetting on Troia's seeded synthetic population."""
+"""Evaluate Pergamon candidate vetting on its seeded synthetic population."""
 
 from tdpy.verbosity import print
 
@@ -114,7 +114,7 @@ def run_bokeh_example(result: dict, summary: dict, output_path: Path) -> Path:
 
 
 def run_synthetic_pipeline(pathbase: Path) -> dict:
-    """Run Pergamon vetting on Troia's deterministic synthetic target population."""
+    """Run Pergamon vetting on its deterministic synthetic target population."""
 
     configuration = {
         "pathbase": str(pathbase),
@@ -239,7 +239,7 @@ def run_example(
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="Plot Pergamon vetting performance on Troia's seeded synthetic population."
+        description="Plot Pergamon vetting performance on its seeded synthetic population."
     )
     add_plot_arguments(parser)
     parser.add_argument("--bokeh", action="store_true", help="also write interactive HTML")

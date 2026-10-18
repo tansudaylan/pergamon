@@ -8,6 +8,14 @@ import tdpy
 from tdpy.verbosity import print
 
 from .paths import get_data_path, get_repository_path, get_visuals_path
+from . import vetting_workflow
+from .vetting_workflow import (
+    mile_work,
+    retr_dictderi_effe,
+    retr_pathvetting,
+    synthetic_target_truth,
+    validated_classification,
+)
 
 
 def vetting_paths(pathbase=None, strgcnfg=None):
@@ -17,16 +25,11 @@ def vetting_paths(pathbase=None, strgcnfg=None):
     repository path helpers are supplied by pergamon.paths.
     """
 
-    repository_path = tdpy.ensr_path(get_repository_path())
-    pathbase = repository_path if pathbase is None else tdpy.ensr_path(pathbase)
-    paths = {
-        'pathbasesard': repository_path,
-        'pathbase': pathbase,
-        'pathdatapipe': tdpy.ensr_path(os.path.join(pathbase, 'data')),
-        'pathvisupipe': tdpy.ensr_path(os.path.join(pathbase, 'visuals')),
-    }
+    paths = retr_pathvetting(pathbase=pathbase)
+    paths['pathbasesard'] = paths['pathbasepergamon']
     if strgcnfg is not None:
-        configuration_path = tdpy.ensr_path(os.path.join(pathbase, strgcnfg))
+        config_paths = retr_pathvetting(pathbase=paths['pathbase'], strgextn=strgcnfg)
+        configuration_path = config_paths['pathpopl']
         paths['pathcnfg'] = configuration_path
         paths['pathsimu'] = tdpy.ensr_path(os.path.join(configuration_path, 'simulation'))
         paths['pathobsd'] = tdpy.ensr_path(os.path.join(configuration_path, 'observed'))
@@ -36,22 +39,31 @@ def vetting_paths(pathbase=None, strgcnfg=None):
 retr_pathsard = vetting_paths
 
 
-def run_candidate_vetting(typesyst='PlanetarySystem', dicttroiinpt=None, strgcnfg=None, pathbase=None):
-    """Run the inherited Troia workflow without inferring completeness or occurrence."""
-
-    import troia
+def run_candidate_vetting(
+    typesyst='PlanetarySystem',
+    dictinpt=None,
+    strgcnfg=None,
+    pathbase=None,
+    *,
+    dicttroiinpt=None,
+):
+    """Run candidate classification without inferring completeness or occurrence."""
 
     print('Candidate vetting initialized at %s...' % datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+    if dictinpt is not None and dicttroiinpt is not None:
+        raise ValueError('Supply only one of dictinpt and dicttroiinpt.')
+    if dicttroiinpt is not None:
+        dictinpt = dicttroiinpt
     configuration = typesyst if strgcnfg is None else strgcnfg
     paths = vetting_paths(pathbase=pathbase, strgcnfg=configuration)
-    if dicttroiinpt is None:
-        dicttroiinpt = {
+    if dictinpt is None:
+        dictinpt = {
             'pathbase': paths['pathsimu'],
             'typesyst': typesyst,
             'listlablinst': [['TESS'], []],
             'liststrgtypedata': [['simutargsynt'], []],
         }
-    result = troia.init(**dicttroiinpt)
+    result = vetting_workflow.init(**dictinpt)
     if hasattr(result, '__dict__'):
         return result.__dict__
     if isinstance(result, dict):

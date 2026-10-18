@@ -316,7 +316,7 @@ def retr_dictpoplrvel(typeverb=1, path=None):
     if typeverb > 0:
         print('Reading Sauls Gaia high RV catalog...')
     if path is None:
-        path = _repository_data_path('TROIA', 'Gaia_high_RV_errors.txt')
+        path = _repository_data_path('PERGAMON', 'Gaia_high_RV_errors.txt')
     for line in open(path):
         listnamesaul = line[:-1].split('\t')
         break
