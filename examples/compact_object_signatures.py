@@ -15,8 +15,10 @@ import numpy as np
 
 from pergamon.signatures import compute_photometric_signatures
 from tdpy.cli import add_plot_arguments
+from tdpy.plotting import save_plot, themed_plot
 
 
+@themed_plot
 def run_bokeh_example(period_days: np.ndarray, companion_mass_solar: np.ndarray,
                      signatures: dict[str, np.ndarray], output_path: Path) -> Path:
     """Write interactive period-amplitude panels for the three signal models."""
@@ -65,6 +67,7 @@ def run_bokeh_example(period_days: np.ndarray, companion_mass_solar: np.ndarray,
     ))
 
 
+@themed_plot
 def run_example(output_path: Path, bokeh_output_path: Path | None = None) -> dict[str, np.ndarray]:
     """Calculate and plot signatures for a solar-type source star."""
 
@@ -126,11 +129,11 @@ def run_example(output_path: Path, bokeh_output_path: Path | None = None) -> dic
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing to {output_path}...")
-    figure.savefig(
+    save_plot(
+        figure,
         output_path,
         dpi=300 if output_path.suffix == ".png" else None,
         bbox_inches="tight",
-        facecolor="white",
     )
     plt.close(figure)
     if bokeh_output_path is not None:
@@ -141,13 +144,14 @@ def run_example(output_path: Path, bokeh_output_path: Path | None = None) -> dic
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     add_plot_arguments(parser)
+    parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     parser.add_argument("--bokeh", action="store_true", help="also write interactive HTML")
     arguments = parser.parse_args()
     output_path = Path(__file__).with_name(
         f"compact_object_signatures.{arguments.typefileplot}"
     )
     html_path = Path(__file__).with_name("compact_object_signatures.html") if arguments.bokeh else None
-    run_example(output_path, bokeh_output_path=html_path)
+    run_example(output_path, bokeh_output_path=html_path, typeplotback=arguments.typeplotback)
     return 0
 
 

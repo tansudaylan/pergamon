@@ -1,6 +1,7 @@
 import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
+import pytest
 
 from pergamon import exoplanet_demographics as demographics
 
@@ -19,7 +20,12 @@ def test_derived_quantities_exclude_reported_limits():
     assert np.isnan(result.loc[2, "escape_velocity_km_s"])
 
 
-def test_catalog_generates_all_three_demographic_figures(tmp_path):
+@pytest.mark.parametrize('typeplotback', ['white', 'dark'])
+@pytest.mark.parametrize('inherit', [False, True])
+def test_catalog_generates_all_three_demographic_figures(tmp_path, monkeypatch, typeplotback, inherit):
+    from matplotlib.colors import to_rgba
+    from tdpy.plotting import plot_background_colors, plot_style
+
     planets = pd.DataFrame({
         "pl_name": ["Earth twin", "Hot sub-Neptune", "Mass limit"],
         "pl_masse": [1.0, 8.0, 3.0], "pl_masselim": [0, 0, 1],
@@ -28,7 +34,22 @@ def test_catalog_generates_all_three_demographic_figures(tmp_path):
         "pl_insol": [1.0, 100.0, 20.0],
     })
 
-    paths = demographics.plot_exoplanet_demographics(planets, tmp_path)
+    original_planets = planets.copy(deep=True)
+    background, foreground = plot_background_colors(typeplotback)
+    save = demographics.plt.Figure.savefig
+
+    def capture_and_save(figure, path, **kwargs):
+        assert figure.get_facecolor() == to_rgba(background)
+        assert all(axis.xaxis.label.get_color() == foreground for axis in figure.axes)
+        return save(figure, path, **kwargs)
+
+    monkeypatch.setattr(demographics.plt.Figure, 'savefig', capture_and_save)
+    options = {} if inherit else {'typeplotback': typeplotback}
+    outer_theme = typeplotback if inherit else ('dark' if typeplotback == 'white' else 'white')
+    with plot_style(outer_theme):
+        original_settings = dict(demographics.plt.rcParams)
+        paths = demographics.plot_exoplanet_demographics(planets, tmp_path, **options)
+        assert dict(demographics.plt.rcParams) == original_settings
 
     assert set(paths) == {
         "exoplanet_mass_radius_density", "exoplanet_cosmic_shoreline", "exoplanet_period_radius",
@@ -37,3 +58,5 @@ def test_catalog_generates_all_three_demographic_figures(tmp_path):
         image = mpimg.imread(path)
         assert image.shape[0] > 100 and image.shape[1] > 100
         assert image[..., :3].min() < 0.8
+        np.testing.assert_array_equal(image[0, 0], to_rgba(background))
+    pd.testing.assert_frame_equal(planets, original_planets)

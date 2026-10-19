@@ -53,7 +53,12 @@ def test_fetch_esm_catalog_uses_archive_values_and_filters_invalid_metrics(monke
 @pytest.mark.parametrize("function_name", [
     "generate_esm_catalog_figure", "generate_esm_distribution_figure",
 ])
-def test_generate_esm_figures(tmp_path, monkeypatch, function_name):
+@pytest.mark.parametrize('typeplotback', ['white', 'dark'])
+@pytest.mark.parametrize('inherit', [False, True])
+def test_generate_esm_figures(tmp_path, monkeypatch, function_name, typeplotback, inherit):
+    from matplotlib.colors import to_rgba
+    from tdpy.plotting import plot_background_colors, plot_style
+
     requested_timeouts = []
 
     def fetch(timeout_seconds):
@@ -67,8 +72,23 @@ def test_generate_esm_figures(tmp_path, monkeypatch, function_name):
     output_path = tmp_path / "figures" / "archive_esm.png"
 
     generate = getattr(catalog, function_name)
-    assert generate(output_path, timeout_seconds=17) == output_path
+    background, foreground = plot_background_colors(typeplotback)
+    save = catalog.plt.Figure.savefig
+
+    def capture_and_save(figure, path, **kwargs):
+        assert figure.get_facecolor() == to_rgba(background)
+        assert all(axis.xaxis.label.get_color() == foreground for axis in figure.axes)
+        return save(figure, path, **kwargs)
+
+    monkeypatch.setattr(catalog.plt.Figure, 'savefig', capture_and_save)
+    options = {} if inherit else {'typeplotback': typeplotback}
+    outer_theme = typeplotback if inherit else ('dark' if typeplotback == 'white' else 'white')
+    with plot_style(outer_theme):
+        original_settings = dict(catalog.plt.rcParams)
+        assert generate(output_path, timeout_seconds=17, **options) == output_path
+        assert dict(catalog.plt.rcParams) == original_settings
     assert requested_timeouts == [17]
     image = mpimg.imread(output_path)
     assert image.shape[0] > 100 and image.shape[1] > 100
     assert image[..., :3].min() < 0.8
+    np.testing.assert_array_equal(image[0, 0], to_rgba(background))

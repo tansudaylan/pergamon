@@ -18,8 +18,10 @@ import numpy as np
 
 from pergamon import vetting
 from tdpy.cli import add_plot_arguments
+from tdpy.plotting import save_plot, themed_plot
 
 
+@themed_plot
 def run_bokeh_example(result: dict, summary: dict, output_path: Path) -> Path:
     """Write interactive truth-count, confusion-matrix, and score panels."""
     from bokeh.layouts import row
@@ -135,6 +137,7 @@ def run_synthetic_pipeline(pathbase: Path) -> dict:
         )
 
 
+@themed_plot
 def run_example(
     output_path: Path,
     result: dict | None = None,
@@ -225,11 +228,11 @@ def run_example(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing to {output_path}...")
-    figure.savefig(
+    save_plot(
+        figure,
         output_path,
         dpi=300 if output_path.suffix == ".png" else None,
         bbox_inches="tight",
-        facecolor="white",
     )
     plt.close(figure)
     if bokeh_output_path is not None:
@@ -242,6 +245,7 @@ def parse_arguments():
         description="Plot Pergamon vetting performance on its seeded synthetic population."
     )
     add_plot_arguments(parser)
+    parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     parser.add_argument("--bokeh", action="store_true", help="also write interactive HTML")
     return parser.parse_args()
 
@@ -252,7 +256,7 @@ def main() -> int:
         f"synthetic_vetting_performance.{arguments.typefileplot}"
     )
     html_path = Path(__file__).with_name("synthetic_vetting_performance.html") if arguments.bokeh else None
-    run_example(output_path, bokeh_output_path=html_path)
+    run_example(output_path, bokeh_output_path=html_path, typeplotback=arguments.typeplotback)
     return 0
 
 

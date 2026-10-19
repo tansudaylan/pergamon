@@ -7,8 +7,8 @@ Candidate vetting
 .. automodule:: pergamon.vetting
    :members: run_candidate_vetting, summarize_vetting_result, vetting_paths, retr_pathsard, init
 
-``pergamon.init`` remains the population-analysis entry point; use
-``pergamon.run_candidate_vetting`` or ``pergamon.vetting.init`` for vetting.
+Use ``pergamon.init`` for population analysis. For candidate vetting, call
+``pergamon.run_candidate_vetting`` or ``pergamon.vetting.init``.
 
 .. automodule:: pergamon.vetting_workflow
    :members: synthetic_target_truth, validated_classification, retr_pathvetting,

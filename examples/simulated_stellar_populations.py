@@ -19,6 +19,7 @@ import numpy as np
 
 import pergamon
 from tdpy.cli import add_plot_arguments
+from tdpy.plotting import plot_background_colors, themed_plot
 
 
 def make_simulated_populations() -> dict:
@@ -40,6 +41,7 @@ def make_simulated_populations() -> dict:
     }
 
 
+@themed_plot
 def run_example(output_path: Path) -> dict:
     """Run Pergamon and retain its focused mass-radius comparison figure."""
 
@@ -71,7 +73,9 @@ def run_example(output_path: Path) -> dict:
             Path(directory)
             / "visuals"
             / (
-                "pmar_radistar_massstar_referenceenhanced_scatscat"
+                "pmar_radistar_massstar_referenceenhanced"
+                + ("_dark" if plot_background_colors()[0] == "black" else "")
+                + "_scatscat"
                 f"{output_path.suffix}"
             )
         )
@@ -82,6 +86,7 @@ def run_example(output_path: Path) -> dict:
     return result
 
 
+@themed_plot
 def run_bokeh_example(output_path: Path) -> Path:
     """Write the deterministic mass-radius comparison as interactive HTML."""
     from bokeh.models import ColumnDataSource, HoverTool
@@ -118,14 +123,15 @@ def run_bokeh_example(output_path: Path) -> Path:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     add_plot_arguments(parser)
+    parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     parser.add_argument("--bokeh", action="store_true", help="also write interactive HTML")
     arguments = parser.parse_args()
     output_path = Path(__file__).with_name(
         f"simulated_stellar_populations.{arguments.typefileplot}"
     )
-    run_example(output_path)
+    run_example(output_path, typeplotback=arguments.typeplotback)
     if arguments.bokeh:
-        run_bokeh_example(Path(__file__).with_name("simulated_stellar_populations.html"))
+        run_bokeh_example(Path(__file__).with_name("simulated_stellar_populations.html"), typeplotback=arguments.typeplotback)
     return 0
 
 

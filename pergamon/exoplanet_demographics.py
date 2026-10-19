@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from tdpy.verbosity import print
+from tdpy.plotting import plot_background_colors, save_plot, themed_plot
 
 from .exoplanet_catalog import _measured_values, load_confirmed_exoplanets
 from .paths import get_visuals_path
@@ -60,10 +61,11 @@ def _save_figure(figure, path: Path, source_note: str) -> None:
     figure.subplots_adjust(left=0.16, right=0.88, bottom=0.21, top=0.96)
     figure.text(0.5, 0.035, source_note, ha="center", va="bottom", fontsize=10)
     print(f"Writing to {path}...")
-    figure.savefig(path, dpi=300, bbox_inches="tight", facecolor="white")
+    save_plot(figure, path, dpi=300, bbox_inches="tight")
     plt.close(figure)
 
 
+@themed_plot
 def plot_exoplanet_demographics(
     planets: pd.DataFrame,
     output_directory: str | Path,
@@ -92,8 +94,7 @@ def plot_exoplanet_demographics(
                          & np.isfinite(measured_radius) & (measured_radius > 0)
                          & np.isfinite(measured_density) & (measured_density > 0))
 
-    with plt.rc_context({"font.size": 10, "axes.edgecolor": "black", "axes.linewidth": 1.0,
-                         "figure.facecolor": "white", "axes.facecolor": "white"}):
+    with plt.rc_context({"font.size": 10, "axes.linewidth": 1.0}):
         figure, axis = plt.subplots(figsize=(7.2, 5.4))
         points = axis.scatter(
             measured_mass[valid_mass_radius], measured_radius[valid_mass_radius],
@@ -123,7 +124,7 @@ def plot_exoplanet_demographics(
         )
         flux_guide = np.geomspace(1e-4, 3e4, 200)
         speed_guide = EARTH_ESCAPE_VELOCITY_KM_S * flux_guide**0.25
-        axis.plot(flux_guide, speed_guide, color="black", linestyle="--", linewidth=1.2,
+        axis.plot(flux_guide, speed_guide, color=plot_background_colors()[1], linestyle="--", linewidth=1.2,
                   label=r"$v_{\rm esc}\propto F^{1/4}$ guide (Zahnle & Catling 2017)")
         axis.scatter([1], [EARTH_ESCAPE_VELOCITY_KM_S], marker="*", s=120, color="white",
                      edgecolor="black", linewidth=0.8, label="Earth")
@@ -165,13 +166,15 @@ def main() -> int:
                         help="saved NASA Exoplanet Archive planet CSV; defaults to a live query")
     parser.add_argument("--output-directory", type=Path, default=get_visuals_path() / "exoplanet_demographics")
     parser.add_argument("--typefileplot", choices=("png", "pdf"), default="png")
+    parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     arguments = parser.parse_args()
     if arguments.catalog is None:
         planets = load_confirmed_exoplanets()
     else:
         print(f"Reading from {arguments.catalog}...")
         planets = pd.read_csv(arguments.catalog)
-    plot_exoplanet_demographics(planets, arguments.output_directory, arguments.typefileplot)
+    plot_exoplanet_demographics(planets, arguments.output_directory, arguments.typefileplot,
+                               typeplotback=arguments.typeplotback)
     return 0
 
 

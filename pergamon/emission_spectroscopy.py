@@ -59,6 +59,7 @@ def fetch_esm_catalog(timeout_seconds: int = 60) -> list[dict[str, float | str]]
     ]
 
 
+@tdpy.themed_plot
 def generate_esm_catalog_figure(output_path: Path, timeout_seconds: int = 60) -> Path:
     """Plot archive inputs against the calculated emission spectroscopy metric."""
 
@@ -87,11 +88,12 @@ def generate_esm_catalog_figure(output_path: Path, timeout_seconds: int = 60) ->
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing to {output_path}...")
-    figure.savefig(output_path, dpi=300, bbox_inches="tight")
+    tdpy.save_plot(figure, output_path, dpi=300, bbox_inches="tight")
     plt.close(figure)
     return output_path
 
 
+@tdpy.themed_plot
 def generate_esm_distribution_figure(output_path: Path, timeout_seconds: int = 60) -> Path:
     """Plot the distribution of finite positive archive emission metrics."""
 
@@ -108,7 +110,7 @@ def generate_esm_distribution_figure(output_path: Path, timeout_seconds: int = 6
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Writing to {output_path}...")
-    figure.savefig(output_path, dpi=300, bbox_inches="tight")
+    tdpy.save_plot(figure, output_path, dpi=300, bbox_inches="tight")
     plt.close(figure)
     return output_path
 

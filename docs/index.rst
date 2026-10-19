@@ -2,9 +2,9 @@ Pergamon
 ========
 
 I use Pergamon to compare astrophysical populations and build catalogs whose
-measurements can be traced to their sources. For occurrence estimates, a list
-of detections is not enough; each surveyed target needs a detection efficiency
-from an explicit analysis of the survey selection function.
+measurements can be traced to their sources. Occurrence estimates require a
+detection efficiency for every surveyed target, derived from the survey
+selection function. Detection counts alone cannot supply that information.
 
 .. toctree::
    :maxdepth: 2
