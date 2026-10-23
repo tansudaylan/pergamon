@@ -39,19 +39,6 @@ precision, recall, and a positive-truth mask. Prediction vectors must match
 the truth labels. Classification alone does not measure completeness or
 occurrence. The generic population ``pergamon.init`` function is unchanged.
 
-Compact-object signatures
--------------------------
-
-Pergamon exposes Miletos' Doppler-beaming, ellipsoidal-variation, and
-self-lensing amplitude calculations. Run the deterministic example with:
-
-.. code-block:: console
-
-   python examples/compact_object_signatures.py --typefileplot png
-
-Install ``python -m pip install -e '.[vetting,bokeh]'`` to also write the
-interactive period-amplitude comparison.
-
 Occurrence-rate calculation
 ---------------------------
 
@@ -70,7 +57,7 @@ surveyed target:
 Efficiencies describe the survey selection function and should come from
 injection recovery or another explicit completeness analysis. The likelihood
 assumes independent targets and at most one event per target. See :doc:`api`
-for false-positive handling and compact-object signatures.
+for false-positive handling and occurrence-rate APIs.
 
 Exoplanet catalogs
 ------------------

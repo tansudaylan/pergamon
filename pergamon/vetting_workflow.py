@@ -16,7 +16,6 @@ from pergamon import catalogs as population_catalogs
 from pergamon import population_synthesis
 
 from .paths import get_repository_path
-from .signatures import compute_photometric_signatures
 
 
 def _get_miletos():

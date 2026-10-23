@@ -14,12 +14,6 @@ Use ``pergamon.init`` for population analysis. For candidate vetting, call
    :members: synthetic_target_truth, validated_classification, retr_pathvetting,
              retr_dictderi_effe, mile_work, init
 
-Compact-object signatures
--------------------------
-
-.. automodule:: pergamon.signatures
-   :members: compute_photometric_signatures
-
 Occurrence inference
 --------------------
 
