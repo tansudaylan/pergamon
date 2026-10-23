@@ -1,9 +1,34 @@
+import json
+from pathlib import Path
+
 import matplotlib.image as mpimg
 import numpy as np
 import pandas as pd
 import pytest
 
 from pergamon import exoplanet_demographics as demographics
+
+
+def test_demographics_notebook_uses_public_pipeline_and_documents_limits():
+    repository = Path(__file__).parents[1]
+    notebook_path = repository / "examples" / "exoplanet_demographics.ipynb"
+    print(f"Reading from {notebook_path}...")
+    notebook = json.loads(notebook_path.read_text(encoding="utf-8"))
+    source = "\n".join(
+        "".join(cell["source"])
+        for cell in notebook["cells"]
+        if cell["cell_type"] in {"code", "markdown"}
+    )
+
+    assert "load_confirmed_exoplanets(limit=catalog_limit)" in source
+    assert "plot_exoplanet_demographics(planets, visuals_directory" in source
+    assert "not occurrence rates" in source
+    assert "/Users/" not in json.dumps(notebook)
+
+    readme_path = repository / "README.md"
+    print(f"Reading from {readme_path}...")
+    readme = readme_path.read_text(encoding="utf-8")
+    assert "examples/exoplanet_demographics.ipynb" in readme
 
 
 def test_derived_quantities_exclude_reported_limits():
