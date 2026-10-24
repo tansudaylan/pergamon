@@ -28,6 +28,24 @@ The system table lists confirmed planets by host. The pair table preserves every
 
 The archive supplies published transmission, eclipse, and direct-imaging spectrum counts. `pergamon.exoplanet_catalog.load_mast_spectra(planet_name)` retrieves a real Exo.MAST curated-spectra file list with file URLs. Additional source-identified atmosphere observations can be joined with `--atmosphere-observations` using `pl_name`, `source`, `observation_id`, and `source_url`. Unmatched names remain visible in the long-form observation table. The catalog does not automatically download ExoAtmospheres or MAST EAOT records because neither offers a stable machine-readable export. Counts from those sources remain blank unless their records are supplied.
 
+## Gaia host-star phase space
+
+I match host stars to the Gaia DR3 `gaiadr3.gaia_source` table using the archive's exact DR3 identifiers. The archive reader preserves those identifiers as text. `load_gaia_dr3_astrometry` deduplicates requests, queries at most 100 identifiers per batch, and retains the query URL and UTC retrieval time with every returned row. Floating-point identifiers are rejected because converting a rounded ID back to an integer cannot recover the original star.
+
+```python
+from pergamon.exoplanet_catalog import load_confirmed_exoplanets
+from pergamon.gaia_kinematics import load_gaia_dr3_astrometry, attach_gaia_phase_space
+
+planets = load_confirmed_exoplanets(limit=20)
+astrometry = load_gaia_dr3_astrometry(planets['gaia_dr3_id'])
+hosts = attach_gaia_phase_space(planets, astrometry)
+hosts[['pl_name', 'gaia_source_id', 'gaia_6d_status']]
+```
+
+The join retains every planet row, its order, its index, and the Gaia measurements even when complete phase space is unavailable. A shared host appears on each of its planet rows. The six Cartesian components require finite sky positions, proper motions, radial velocity, reference epoch, and positive parallax with positive uncertainty. I use inverse-parallax distances only when the fractional parallax error is at most 0.2. Pass a smaller `max_fractional_parallax_error` to tighten that cut. Missing radial velocities stay missing. `gaia_6d_status` distinguishes unmatched stars, incomplete measurements, invalid positions or parallaxes, and the precision cut.
+
+Positions are in parsecs and velocities in km/s, along Galactic axes with the Solar System barycentre as the origin. Gaia's `pmra` includes the declination cosine. Coordinates remain at their reported reference epoch. No parallax zero-point correction, distance prior, covariance propagation, solar-motion subtraction, or Galactic potential is included. RUWE and radial-velocity uncertainty are retained without applying additional cuts. The result has no integrated trajectories, encounter histories, environmental measurements, or planet-environment correlation analysis. A 20-row download is only a usage example and carries no population selection correction.
+
 ## Dictionary catalogs and population synthesis
 
 Nicomedia's catalog workflows now live in `pergamon.catalogs`. The retained adapters cover TIC8 target sets, TOI data, saved NASA Exoplanet Archive composite tables, host grouping, and TIC-to-TOI matching. They keep the historical `[values, unit_label]` dictionary format used by the analysis packages. New caches belong under `$PERGAMON_PATH/data/`. Existing saved inputs under `$EPHESOS_PATH/data/` can still be read when the corresponding Pergamon input is absent. The TOI adapter expects `exofop_toilists.csv`, and the historical archive adapter expects `PSCompPars_2023.10.12_16.58.05.csv`. These are supplied snapshots, not automatic current-catalog downloads. Use `pergamon.exoplanet_catalog` for the maintained live archive workflow.

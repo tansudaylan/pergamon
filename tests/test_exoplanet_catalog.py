@@ -39,13 +39,29 @@ def example_planets():
 
 def test_archive_query_uses_default_solutions_and_limits(monkeypatch):
     captured = []
-    monkeypatch.setattr(pd, "read_csv", lambda url: captured.append(url) or pd.DataFrame())
+    monkeypatch.setattr(pd, "read_csv", lambda url, **kwargs: captured.append(url) or pd.DataFrame())
     load_confirmed_exoplanets(limit=2)
     query = parse_qs(urlparse(captured[0]).query)["query"][0]
     assert "top 2" in query and "from ps where default_flag=1" in query
     assert "pl_masse" in query and "pl_bmassprov" in query
     with pytest.raises(ValueError, match="positive integer"):
         load_confirmed_exoplanets(limit=0)
+
+
+def test_archive_reader_preserves_large_gaia_identifiers_with_missing_rows(monkeypatch):
+    from io import StringIO
+
+    identifier = '5853498713190525696'
+    original_read_csv = pd.read_csv
+
+    def read_csv(url, **kwargs):
+        assert kwargs['dtype'] == {'gaia_dr3_id': 'string'}
+        return original_read_csv(StringIO(f'pl_name,gaia_dr3_id\nTest b,{identifier}\nOther b,\n'), **kwargs)
+
+    monkeypatch.setattr(pd, 'read_csv', read_csv)
+    result = load_confirmed_exoplanets()
+    assert result['gaia_dr3_id'].iloc[0] == identifier
+    assert pd.isna(result['gaia_dr3_id'].iloc[1])
 
 
 def test_orbital_features_require_true_mass_and_preserve_missing_values():

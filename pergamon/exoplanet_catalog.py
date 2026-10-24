@@ -48,7 +48,7 @@ def load_confirmed_exoplanets(limit: int | None = None) -> pd.DataFrame:
     query = f"select {prefix}{','.join(PLANET_COLUMNS)} from ps where default_flag=1"
     url = f"{TAP_URL}?{urlencode({'query': query, 'format': 'csv'})}"
     print(f"Reading from {url}...")
-    catalog = pd.read_csv(url)
+    catalog = pd.read_csv(url, dtype={'gaia_dr3_id': 'string'})
     catalog["archive_source_url"] = url
     catalog["archive_retrieved_at_utc"] = datetime.now(timezone.utc).isoformat()
     return catalog
