@@ -6,3 +6,4 @@ build/
 dist/
 /data/
 /visuals/
+/examples/visuals/gaia_*
