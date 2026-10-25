@@ -1,7 +1,9 @@
 """Plot observed exoplanet demographics from NASA Exoplanet Archive data."""
 
 import argparse
+from datetime import datetime, timezone
 from pathlib import Path
+import re
 
 import astropy.constants as const
 import astropy.units as u
@@ -70,11 +72,17 @@ def plot_exoplanet_demographics(
     planets: pd.DataFrame,
     output_directory: str | Path,
     typefileplot: str = "png",
+    *,
+    time_tag: str | None = None,
 ) -> dict[str, Path]:
-    """Write focused mass-radius, shoreline, and period-radius figures."""
+    """Write timestamped mass-radius, shoreline, and period-radius figures."""
 
     if typefileplot not in {"png", "pdf"}:
         raise ValueError("typefileplot must be 'png' or 'pdf'")
+    if time_tag is None:
+        time_tag = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S_%f")
+    if not isinstance(time_tag, str) or not re.fullmatch(r"\d{8}_\d{6}(?:_\d{6})?", time_tag):
+        raise ValueError("time_tag must be YYYYMMDD_HHMMSS with optional microseconds")
     output_directory = Path(output_directory)
     output_directory.mkdir(parents=True, exist_ok=True)
     data = add_demographic_quantities(planets)
@@ -82,10 +90,13 @@ def plot_exoplanet_demographics(
     retrieved = f"; retrieved {str(source_rows.iloc[0])[:10]} UTC" if not source_rows.empty else ""
     source_note = f"NASA Exoplanet Archive, Planetary Systems default solutions{retrieved}"
     paths = {
-        name: output_directory / f"{name}.{typefileplot}"
+        name: output_directory / f"{name}_{time_tag}.{typefileplot}"
         for name in ("exoplanet_mass_radius_density", "exoplanet_cosmic_shoreline",
                      "exoplanet_period_radius")
     }
+    for path in paths.values():
+        if path.exists():
+            raise FileExistsError(f"Refusing to overwrite {path}")
 
     measured_mass = _positive_measurements(data, "pl_masse", "pl_masselim")
     measured_radius = _positive_measurements(data, "pl_rade", "pl_radelim")
@@ -103,7 +114,7 @@ def plot_exoplanet_demographics(
         )
         axis.scatter([1], [1], marker="*", s=120, color="white", edgecolor="black",
                      linewidth=0.8, label="Earth")
-        axis.set(xscale="log", yscale="log", xlim=(0.1, 1e4), ylim=(0.1, 30),
+        axis.set(xscale="log", yscale="log",
                  xlabel=r"Planet mass [$M_\oplus$]", ylabel=r"Planet radius [$R_\oplus$]")
         axis.grid(False)
         axis.legend(loc="lower right", frameon=True, fancybox=True, framealpha=1.0)
@@ -128,13 +139,14 @@ def plot_exoplanet_demographics(
                   label=r"$v_{\rm esc}\propto F^{1/4}$ guide (Zahnle & Catling 2017)")
         axis.scatter([1], [EARTH_ESCAPE_VELOCITY_KM_S], marker="*", s=120, color="white",
                      edgecolor="black", linewidth=0.8, label="Earth")
-        axis.set(xscale="log", yscale="log", xlim=(1e-4, 1e6), ylim=(0.5, 150),
+        axis.set(xscale="log", yscale="log",
                  xlabel=r"Incident stellar flux [$S_\oplus$]",
                  ylabel=r"Escape velocity [km s$^{-1}$]")
         axis.text(0.02, 0.03, "Earth-normalized scaling; not a fitted retention boundary",
                   transform=axis.transAxes, ha="left", va="bottom")
         axis.grid(False)
-        axis.legend(loc="upper left", frameon=True, fancybox=True, framealpha=1.0)
+        axis.legend(loc="lower left", bbox_to_anchor=(0, 1.02), borderaxespad=0,
+                frameon=True, fancybox=True, framealpha=1.0)
         colorbar = figure.colorbar(points, ax=axis, pad=0.02)
         colorbar.set_label(r"Bulk density [g cm$^{-3}$]")
         _save_figure(figure, paths["exoplanet_cosmic_shoreline"], source_note)
@@ -166,6 +178,7 @@ def main() -> int:
                         help="saved NASA Exoplanet Archive planet CSV; defaults to a live query")
     parser.add_argument("--output-directory", type=Path, default=get_visuals_path() / "exoplanet_demographics")
     parser.add_argument("--typefileplot", choices=("png", "pdf"), default="png")
+    parser.add_argument("--time-tag", help="output timestamp YYYYMMDD_HHMMSS; existing files are preserved")
     parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     arguments = parser.parse_args()
     if arguments.catalog is None:
@@ -174,7 +187,7 @@ def main() -> int:
         print(f"Reading from {arguments.catalog}...")
         planets = pd.read_csv(arguments.catalog)
     plot_exoplanet_demographics(planets, arguments.output_directory, arguments.typefileplot,
-                               typeplotback=arguments.typeplotback)
+                               typeplotback=arguments.typeplotback, time_tag=arguments.time_tag)
     return 0
 
 

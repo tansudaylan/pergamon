@@ -93,13 +93,23 @@ with black axes. Python calls also inherit an enclosing TDpy theme.
 
 Run `python -m pergamon.exoplanet_demographics` to query the full NASA Exoplanet Archive Planetary Systems table and write three publication-resolution figures under `visuals/exoplanet_demographics/`. Pass `--catalog path/to/exoplanet_planets.csv` to plot a retained catalog snapshot without a network request, or `--typefileplot pdf` for PDF output. The mass-radius diagram colors planets by bulk density. The cosmic-shoreline diagram plots measured escape speeds against reported incident flux and includes the Earth-normalized $v_{\rm esc} \propto F^{1/4}$ scaling discussed by Zahnle & Catling (2017). The diagram puts measured values in context. It does not fit an atmospheric-retention boundary or classify exoplanet atmospheres. The period-radius figure shows raw detected catalog counts. It does not apply a survey-completeness correction, so the counts cannot be interpreted as occurrence rates. Density and escape speed are calculated only from measured masses and radii. Archive limits are excluded from those calculations.
 
-![Exoplanet mass-radius diagram colored by measured bulk density](examples/visuals/exoplanet_mass_radius_density.png)
+![Exoplanet mass-radius diagram colored by measured bulk density](examples/visuals/exoplanet_mass_radius_density_20261025_203048.png)
 
-![Measured escape speed and incident flux with the Earth-normalized cosmic-shoreline scaling](examples/visuals/exoplanet_cosmic_shoreline.png)
+![Measured escape speed and incident flux with the Earth-normalized cosmic-shoreline scaling](examples/visuals/exoplanet_cosmic_shoreline_20261025_203048.png)
 
-![Raw detected exoplanet counts by orbital period and radius](examples/visuals/exoplanet_period_radius.png)
+![Raw detected exoplanet counts by orbital period and radius](examples/visuals/exoplanet_period_radius_20261025_203048.png)
+
+These figures use the 6,372-row archive snapshot retrieved on October 1, 2026.
+Of those planets, 1,415 have positive, finite mass and radius measurements
+that satisfy the archive limit flags. The shoreline legend sits outside the
+measurements, and both scatter plots fit their axes to the supplied data.
 
 The [demographics notebook](examples/exoplanet_demographics.ipynb) applies the same plotting function to a bounded live archive sample and saves its figures under `examples/visuals/`.
+
+Each run writes UTC-timestamped filenames and preserves earlier figures. For a
+chosen output timestamp, pass `--time-tag YYYYMMDD_HHMMSS` from the CLI or
+`time_tag="YYYYMMDD_HHMMSS"` to `plot_exoplanet_demographics`. Reusing an existing
+output timestamp raises an error before any figure is written.
 
 ## Atmospheric target prioritization
 
