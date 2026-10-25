@@ -8,6 +8,8 @@ from scipy.special import xlogy
 
 
 def _validate_survey(detected, detection_efficiency, false_positive_probability=0.0):
+    if any(np.ma.is_masked(value) for value in (detected, detection_efficiency, false_positive_probability)):
+        raise ValueError("Survey inputs must contain measured, unmasked values")
     detected = np.asarray(detected)
     efficiency = np.asarray(detection_efficiency, dtype=float)
     false_positive_probability = np.broadcast_to(
@@ -100,6 +102,8 @@ def estimate_compact_object_occurrence_rate(
     forwards these predictions but does not calculate amplitudes or completeness.
     """
 
+    if np.ma.is_masked(detected) or any(np.ma.is_masked(value) for value in photometric_signatures.values()):
+        raise ValueError("Compact-object inputs must contain measured, unmasked values")
     detected = np.asarray(detected)
     if detected.ndim != 1 or detected.size == 0:
         raise ValueError("detections must be a nonempty one-dimensional array")

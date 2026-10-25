@@ -173,6 +173,36 @@ def test_compact_object_occurrence_rate_reads_precomputed_miletos_signatures():
         np.testing.assert_array_equal(received[name], values)
 
 
+@pytest.mark.parametrize("masked_name", ["detected", "amplbeammodl", "ampellimodl", "amplslenmodl"])
+def test_compact_object_occurrence_rejects_masks_before_recovery(masked_name):
+    detected = np.array([1, 0])
+    signatures = {name: np.array([1.0, 2.0]) for name in ("amplbeammodl", "ampellimodl", "amplslenmodl")}
+    if masked_name == "detected":
+        detected = np.ma.array(detected, mask=[True, False])
+    else:
+        signatures[masked_name] = np.ma.array(signatures[masked_name], mask=[True, False])
+    with pytest.raises(ValueError, match="unmasked"):
+        pergamon.estimate_compact_object_occurrence_rate(
+            detected, signatures, lambda values: pytest.fail("must reject before recovery"),
+        )
+
+
+@pytest.mark.parametrize("masked_index", range(3))
+def test_occurrence_rejects_masked_survey_inputs(masked_index):
+    arguments = [np.array([1, 0]), np.array([1.0, 0.5]), np.array([0.0, 0.0])]
+    arguments[masked_index] = np.ma.array(arguments[masked_index], mask=[True, False])
+    with pytest.raises(ValueError, match="unmasked"):
+        pergamon.estimate_occurrence_rate(*arguments)
+
+
+def test_unmasked_survey_arrays_preserve_the_occurrence_estimate():
+    expected = pergamon.estimate_occurrence_rate([1, 0, 0], [1.0, 0.5, 0.5])
+    actual = pergamon.estimate_occurrence_rate(
+        np.ma.array([1, 0, 0], mask=False), np.ma.array([1.0, 0.5, 0.5], mask=False),
+    )
+    assert actual == expected
+
+
 def test_compact_object_occurrence_rate_rejects_missing_or_misaligned_signatures():
     signatures = {
         'amplbeammodl': np.array([1.0, 2.0]),
