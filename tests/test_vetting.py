@@ -24,6 +24,57 @@ def test_summarize_vetting_result_preserves_classifier_metrics():
     np.testing.assert_allclose(summary['recall'], [0.5, 1.0])
 
 
+@pytest.mark.parametrize('indices', [
+    [0.5, 1], [np.nan, 1], [-1, 1], [0, 2], [[0, 1]], ['0', '1'],
+    np.ma.array([0, 1], mask=[True, False]),
+])
+def test_vetting_summary_rejects_invalid_truth_indices(indices):
+    with pytest.raises(ValueError, match='Truth class indices'):
+        vetting.summarize_vetting_result({
+            'typesyst': 'PlanetarySystem', 'listnameclastruetype': ['PlanetarySystem', 'StellarBinary'],
+            'indxclastruetypetarg': indices, 'listlablclasdisp': ['Classifier'],
+            'boolpositarg': [[True, False]],
+        })
+
+
+@pytest.mark.parametrize('predictions', [
+    [np.nan, 0], [np.inf, 0], [0.5, 0], [-1, 0], [2, 0], ['False', 'True'],
+    np.ma.array([True, False], mask=[False, True]),
+])
+def test_vetting_summary_rejects_invalid_predictions(predictions):
+    with pytest.raises(ValueError, match='Prediction arrays'):
+        vetting.summarize_vetting_result({
+            'typesyst': 'PlanetarySystem', 'listnameclastruetype': ['PlanetarySystem', 'StellarBinary'],
+            'indxclastruetypetarg': [0, 1], 'listlablclasdisp': ['Classifier'],
+            'boolpositarg': [predictions],
+        })
+
+
+@pytest.mark.parametrize('predictions', [
+    np.array([True, False, True, False]), np.array([1, 0, 1, 0]),
+    np.array([1.0, 0.0, 1.0, 0.0]),
+    np.ma.array([True, False, True, False], mask=False),
+])
+def test_vetting_summary_preserves_valid_binary_encodings(predictions):
+    original = predictions.copy()
+    summary = vetting.summarize_vetting_result({
+        'typesyst': 'PlanetarySystem', 'listnameclastruetype': ['PlanetarySystem', 'StellarBinary'],
+        'indxclastruetypetarg': np.array([0.0, 0.0, 1.0, 1.0]),
+        'listlablclasdisp': ['Classifier'], 'boolpositarg': [predictions],
+    })
+    np.testing.assert_array_equal(summary['confusion_matrices'], [[[1, 1], [1, 1]]])
+    np.testing.assert_array_equal(summary['precision'], [0.5])
+    np.testing.assert_array_equal(summary['recall'], [0.5])
+    np.testing.assert_array_equal(predictions, original)
+    np.testing.assert_array_equal(np.ma.getmaskarray(predictions), np.ma.getmaskarray(original))
+
+
+@pytest.mark.parametrize('names', [[], ['', 'Other'], ['Same', 'Same'], [1, 'Other']])
+def test_vetting_summary_rejects_ambiguous_class_names(names):
+    with pytest.raises(ValueError, match='Truth class names'):
+        vetting.summarize_vetting_result({'listnameclastruetype': names})
+
+
 def test_summarize_vetting_result_rejects_unknown_target_type():
     with pytest.raises(ValueError, match='absent from truth labels'):
         vetting.summarize_vetting_result({
@@ -145,5 +196,11 @@ def test_full_population_workflow_with_explicit_deterministic_analysis_responses
     assert set(calls) == {'PlanetarySystem', 'StellarBinary'}
     np.testing.assert_array_equal(result['boolpositarg'][0], np.asarray(calls) == 'PlanetarySystem')
     np.testing.assert_array_equal(result['boolpositarg'][1], np.asarray(calls) != 'PlanetarySystem')
+    actual_truth = np.asarray(calls) == 'PlanetarySystem'
+    np.testing.assert_array_equal(summary['positive_truth'], actual_truth)
     assert summary['confusion_matrices'].shape == (2, 2, 2)
     assert np.all(summary['confusion_matrices'].sum(axis=(1, 2)) == 100)
+    positive_count = np.count_nonzero(actual_truth)
+    negative_count = actual_truth.size - positive_count
+    np.testing.assert_array_equal(summary['confusion_matrices'][0],
+                                  [[negative_count, 0], [0, positive_count]])

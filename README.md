@@ -142,13 +142,19 @@ The metric ranks relative observability under its assumed thermal-emission model
 
 Sardis's workflow and classification summaries now live in `pergamon.vetting`. Use `pergamon.run_candidate_vetting(typesyst="PlanetarySystem", dictinpt=None, strgcnfg=None, pathbase=None)` in place of `sardis.init`. Pergamon's existing population-analysis `init` is unchanged. The vetting module also retains `init` and `retr_pathsard` aliases, along with the generic repository-path helpers.
 
-The workflow passes supplied `dictinpt` arguments unchanged to Miletos and preserves dictionary, attribute-object, and other return conventions. With no supplied dictionary, it uses TESS synthetic-target defaults. `vetting_paths` uses `PERGAMON_PATH` and creates configuration-specific `simulation` and `observed` directories beneath the selected base. Explicit `pathbase` and `strgcnfg` still work.
+The wrapper passes supplied `dictinpt` arguments unchanged to the population workflow, which prepares per-target Miletos calls. It preserves dictionary, attribute-object, and other return conventions. With no supplied dictionary, it uses TESS synthetic-target defaults. `vetting_paths` uses `PERGAMON_PATH` and creates configuration-specific `simulation` and `observed` directories beneath the selected base. Explicit `pathbase` and `strgcnfg` still work.
 
 Existing callers can supply `dicttroiinpt` as an alias for `dictinpt`. Supply
 only one of these arguments. The dictionary returned by `vetting_paths` retains
 the historical `pathbasesard` key alongside `pathbasepergamon`.
 
 `summarize_vetting_result` returns classifier labels, confusion matrices, precision, recall, and the positive-truth mask. Confusion matrices use rows for negative and positive truth, and columns for negative and positive decisions. Precision and recall remain zero when their denominator is zero. All prediction vectors must match the truth-label shape. Classification does not establish survey completeness or an occurrence rate.
+
+Synthetic truth labels follow the actual generated class populations and target
+indices. The summary rejects masked or nonfinite labels, fractional or
+out-of-range class indices, ambiguous class names, and incomplete or nonbinary
+predictions. Boolean, integer zero-or-one, floating zero-or-one, and fully
+unmasked prediction arrays retain the same metrics.
 
 Install the optional Miletos-backed workflow and run the example:
 
@@ -160,7 +166,10 @@ python examples/synthetic_vetting_performance.py --typefileplot png --bokeh
 
 ![Transferred synthetic candidate-vetting summary](examples/synthetic_vetting_performance.png)
 
-The figure summarizes candidate vetting on synthetic data. Running the script can perform posterior inference for 100 simulated targets. The results provide no estimate of performance on observed candidates.
+The figure is a historical synthetic example from before the class-label
+alignment checks. Running the script performs the current workflow for 100
+simulated targets. Its updated full native result remains to be regenerated.
+The example provides no estimate of performance on observed candidates.
 
 ## Occurrence rates
 
@@ -195,7 +204,7 @@ Install `python -m pip install -e '.[bokeh]'` to also write an interactive mass-
 
 ![Pergamon simulated stellar population comparison](examples/simulated_stellar_populations.png)
 
-The reference sample spans 0.75 to 1.15 solar masses. The radius-enhanced sample spans 0.95 to 1.45 solar masses and follows a steeper deterministic mass-radius relation. Both populations are simulated inputs rather than observed stars. Pergamon constructs the common feature matrix and produces the displayed comparison through its standard population-plotting pipeline.
+Each sample contains 40 simulated stars. Reference masses span 0.75 to 1.15 solar masses, with radii set by $R_\star/R_\odot = 0.95(M_\star/M_\odot)+0.08$. Radius-enhanced masses span 0.95 to 1.45 solar masses, with $R_\star/R_\odot = 1.08(M_\star/M_\odot)+0.03$. `pergamon.init` plots the supplied mass-radius relations.
 
 ## Dependencies
 

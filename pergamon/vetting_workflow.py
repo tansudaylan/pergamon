@@ -730,6 +730,11 @@ def init( \
             gdat.dictindxtarg[nameclastruetypentrn] = np.setdiff1d(gdat.dictindxtarg[nameclastruetype], gdat.dictindxtarg[nameclastruetypetran])
             indxoffs += gdat.dictindxtarg[nameclastruetype].size
 
+        for class_index, class_name in enumerate(gdat.listnameclastruetype):
+            gdat.indxclastruetypetarg[gdat.dictindxtarg[class_name]] = class_index
+        if indxoffs != gdat.numbtarg:
+            raise ValueError('Generated class populations do not cover every synthetic target')
+
         gdat.numbtargclastrue = dict()
         for name in gdat.listnameclastrue:
             gdat.numbtargclastrue[name] = gdat.dictindxtarg[name].size

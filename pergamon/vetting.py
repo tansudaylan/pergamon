@@ -78,13 +78,32 @@ def summarize_vetting_result(result: dict) -> dict[str, object]:
     """Summarize classifier performance against simulated truth labels."""
 
     true_type_names = list(result["listnameclastruetype"])
+    if (not true_type_names or any(not isinstance(name, str) or not name for name in true_type_names)
+            or len(set(true_type_names)) != len(true_type_names)):
+        raise ValueError("Truth class names must be distinct nonempty strings.")
     target_type = result["typesyst"]
     if target_type not in true_type_names:
         raise ValueError(f"Target type {target_type!r} is absent from truth labels.")
-    true_type_index = np.asarray(result["indxclastruetypetarg"], dtype=int)
+    raw_indices = result["indxclastruetypetarg"]
+    if np.ma.is_masked(raw_indices):
+        raise ValueError("Truth class indices must be complete, finite integer labels.")
+    true_type_index = np.asarray(raw_indices)
+    if (true_type_index.ndim != 1 or true_type_index.dtype.kind not in 'biuf'
+            or not np.all(np.isfinite(true_type_index))
+            or np.any(true_type_index != np.floor(true_type_index))
+            or np.any((true_type_index < 0) | (true_type_index >= len(true_type_names)))):
+        raise ValueError("Truth class indices must be valid finite integer labels.")
     positive_truth = true_type_index == true_type_names.index(target_type)
     classifier_labels = list(result["listlablclasdisp"])
-    predictions = [np.asarray(values, dtype=bool) for values in result["boolpositarg"]]
+    predictions = []
+    for values in result["boolpositarg"]:
+        if np.ma.is_masked(values):
+            raise ValueError("Prediction arrays must contain complete binary decisions.")
+        array = np.asarray(values)
+        if (array.dtype.kind not in 'biuf' or not np.all(np.isfinite(array))
+                or not np.all((array == 0) | (array == 1))):
+            raise ValueError("Prediction arrays must contain finite binary decisions.")
+        predictions.append(array.astype(bool))
     if len(predictions) != len(classifier_labels):
         raise ValueError("Classifier labels and prediction arrays must have equal length.")
     if any(values.shape != positive_truth.shape for values in predictions):
