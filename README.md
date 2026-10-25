@@ -1,5 +1,7 @@
 # Pergamon
 
+The name refers to [Pergamon](https://en.wikipedia.org/wiki/Pergamon), the ancient city at modern Bergama, Turkey, known for its library. I use the name for a package that brings astronomical catalogs together and compares the populations they describe.
+
 I use Pergamon when the question moves from one system to a population. How do the samples differ? Which quantities were measured, which were inferred, and which targets were never likely to be detected? A crowded scatter plot deserves a closer look at how the points got there.
 
 ## Purpose
@@ -148,7 +150,7 @@ python examples/synthetic_vetting_performance.py --typefileplot png --bokeh
 
 ![Transferred synthetic candidate-vetting summary](examples/synthetic_vetting_performance.png)
 
-The figure shows a synthetic candidate-vetting summary, not the result of a fresh posterior run. Running the script can perform posterior inference for 100 synthetic targets, so it is not a lightweight preview. These results do not describe observed-candidate performance.
+The figure summarizes candidate vetting on synthetic data. Running the script can perform posterior inference for 100 simulated targets. The results provide no estimate of performance on observed candidates.
 
 ## Occurrence rates
 
