@@ -27,6 +27,7 @@ PLANET_COLUMNS = (
     "pl_bmasse", "pl_bmassprov", "pl_masse", "pl_rade", "st_mass", "st_rad",
     "st_rotp", "st_lum", "pl_insol", "pl_ntranspec", "pl_nespec", "pl_ndispec",
     "pl_orbperlim", "pl_masselim", "pl_radelim", "st_masslim", "pl_orbeccenlim",
+    "st_radlim", "st_rotplim",
 )
 
 
@@ -52,6 +53,13 @@ def load_confirmed_exoplanets(limit: int | None = None) -> pd.DataFrame:
     catalog["archive_source_url"] = url
     catalog["archive_retrieved_at_utc"] = datetime.now(timezone.utc).isoformat()
     return catalog
+
+
+def _angular_momentum_deficit_fraction(eccentricity, inclination_degrees=0.0):
+    """Evaluate the deficit without subtracting nearly equal values near circular coplanar orbits."""
+    root = np.sqrt(1 - eccentricity**2)
+    eccentricity_term = eccentricity**2 / (1 + root)
+    return eccentricity_term + 2 * root * np.sin(np.deg2rad(inclination_degrees) / 2)**2
 
 
 def enrich_exoplanets(planets: pd.DataFrame) -> pd.DataFrame:
@@ -104,7 +112,7 @@ def enrich_exoplanets(planets: pd.DataFrame) -> pd.DataFrame:
                 G * stellar_mass[valid_eccentricity] * semimajor_axis
             )
             catalog.loc[valid_eccentricity, "eccentricity_amd_lower_bound_kg_m2_s"] = (
-                angular_momentum * (1 - np.sqrt(1 - eccentricity[valid_eccentricity] ** 2))
+                angular_momentum * _angular_momentum_deficit_fraction(eccentricity[valid_eccentricity])
             ).to_value(u.kg * u.m**2 / u.s)
     catalog["has_inner_companion"] = pd.Series(pd.NA, index=catalog.index, dtype="boolean")
     catalog["has_outer_companion"] = pd.Series(pd.NA, index=catalog.index, dtype="boolean")
@@ -148,13 +156,15 @@ def add_measured_host_features(catalog: pd.DataFrame, measurements: pd.DataFrame
         ).to_value(u.erg / (u.s * u.cm**2))
     if "host_convective_turnover_days" in result and "st_rotp" in result:
         turnover = pd.to_numeric(result["host_convective_turnover_days"], errors="coerce")
-        rotation = pd.to_numeric(result["st_rotp"], errors="coerce")
-        result["host_rossby_number"] = (rotation / turnover).where((turnover > 0) & (rotation > 0))
+        rotation = _measured_values(result, "st_rotp", "st_rotplim")
+        result["host_rossby_number"] = (rotation / turnover).where(
+            (turnover > 0) & (rotation > 0) & np.isfinite(turnover) & np.isfinite(rotation))
     if "host_alfven_radius_stellar_radii" in result and "st_rad" in result:
         alfven = pd.to_numeric(result["host_alfven_radius_stellar_radii"], errors="coerce")
-        radius = pd.to_numeric(result["st_rad"], errors="coerce")
+        radius = _measured_values(result, "st_rad", "st_radlim")
         result["host_alfven_radius_au"] = (
-            (alfven * radius).where((alfven > 0) & (radius > 0)).to_numpy() * u.R_sun
+            (alfven * radius).where((alfven > 0) & (radius > 0)
+                                    & np.isfinite(alfven) & np.isfinite(radius)).to_numpy() * u.R_sun
         ).to_value(u.au)
     return result
 
@@ -186,8 +196,7 @@ def add_measured_orbit_orientation(catalog: pd.DataFrame, measurements: pd.DataF
             G * stellar_mass[valid] * u.M_sun * semimajor[valid] * u.au
         )
         result.loc[valid, "angular_momentum_deficit_kg_m2_s"] = (
-            angular_momentum * (1 - np.sqrt(1 - eccentricity[valid] ** 2)
-                                * np.cos(np.deg2rad(inclination[valid])))
+            angular_momentum * _angular_momentum_deficit_fraction(eccentricity[valid], inclination[valid])
         ).to_value(u.kg * u.m**2 / u.s)
     return result
 

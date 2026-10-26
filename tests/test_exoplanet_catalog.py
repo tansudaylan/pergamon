@@ -44,6 +44,7 @@ def test_archive_query_uses_default_solutions_and_limits(monkeypatch):
     query = parse_qs(urlparse(captured[0]).query)["query"][0]
     assert "top 2" in query and "from ps where default_flag=1" in query
     assert "pl_masse" in query and "pl_bmassprov" in query
+    assert "st_radlim" in query and "st_rotplim" in query
     with pytest.raises(ValueError, match="positive integer"):
         load_confirmed_exoplanets(limit=0)
 
@@ -97,6 +98,37 @@ def test_eccentricity_bound_is_not_a_measured_angular_momentum_deficit():
     assert np.isnan(oriented["angular_momentum_deficit_kg_m2_s"].iloc[0])
 
 
+@pytest.mark.parametrize('eccentricity, inclination', [(1e-10, 0.0), (0.0, 1e-8), (1e-10, 1e-8)])
+def test_tiny_orbital_deficits_remain_positive(eccentricity, inclination):
+    from astropy import constants, units
+
+    planets = example_planets().iloc[:1].copy()
+    planets['pl_orbeccen'] = eccentricity
+    enriched = enrich_exoplanets(planets)
+    oriented = add_measured_orbit_orientation(enriched, pd.DataFrame({
+        'pl_name': ['Test c'], 'inclination_invariable_plane_deg': [inclination],
+        'source_reference': ['synthetic invariant-plane fit'],
+    }))
+    semimajor_axis = enriched['kepler_semimajor_axis_au'].iloc[0] * units.au
+    momentum = (2 * units.M_earth * np.sqrt(constants.G * units.M_sun * semimajor_axis)).to_value(
+        units.kg * units.m**2 / units.s)
+    small_angle_fraction = (eccentricity**2 + np.deg2rad(inclination)**2) / 2
+    actual = oriented['angular_momentum_deficit_kg_m2_s'].iloc[0]
+    assert actual > 0
+    assert actual == pytest.approx(momentum * small_angle_fraction, rel=1e-12)
+    assert enriched['eccentricity_amd_lower_bound_kg_m2_s'].iloc[0] == pytest.approx(
+        momentum * eccentricity**2 / 2, rel=1e-12, abs=0)
+
+
+@pytest.mark.parametrize('eccentricity, inclination', [(0.0, 0.0), (0.1, 20.0), (0.8, 90.0), (0.9, 180.0)])
+def test_orbital_deficit_fraction_preserves_ordinary_formula(eccentricity, inclination):
+    from pergamon.exoplanet_catalog import _angular_momentum_deficit_fraction
+
+    actual = _angular_momentum_deficit_fraction(np.array([eccentricity]), inclination)[0]
+    expected = 1 - np.sqrt(1 - eccentricity**2) * np.cos(np.deg2rad(inclination))
+    assert actual == pytest.approx(expected, rel=1e-13, abs=1e-15)
+
+
 def test_partial_system_does_not_assert_absent_companions():
     catalog = enrich_exoplanets(example_planets().iloc[:2])
     assert pd.isna(catalog.set_index("pl_name").loc["Test b", "has_inner_companion"])
@@ -148,6 +180,22 @@ def test_measured_features_require_provenance_and_valid_inputs():
     assert pd.isna(oriented.set_index("pl_name").loc["Test b", "angular_momentum_deficit_kg_m2_s"])
     with pytest.raises(ValueError, match="unique"):
         add_measured_host_features(planets, pd.concat([hosts, hosts], ignore_index=True))
+
+
+@pytest.mark.parametrize('column, value, derived', [
+    ('st_rotplim', 1, 'host_rossby_number'), ('st_radlim', -1, 'host_alfven_radius_au'),
+    ('st_rotp', np.inf, 'host_rossby_number'), ('st_rad', np.inf, 'host_alfven_radius_au'),
+])
+def test_host_feature_derivations_exclude_limits_and_nonfinite_stellar_values(column, value, derived):
+    planets = enrich_exoplanets(example_planets().iloc[:1].copy())
+    planets[column] = value
+    before = planets.copy(deep=True)
+    measurements = pd.DataFrame({'hostname': ['Test'], 'source_reference': ['synthetic measurements'],
+                                 'host_convective_turnover_days': [10.0],
+                                 'host_alfven_radius_stellar_radii': [10.0]})
+    result = add_measured_host_features(planets, measurements)
+    assert np.isnan(result[derived].iloc[0])
+    pd.testing.assert_frame_equal(planets, before)
 
 
 def test_atmosphere_observations_keep_multiple_and_unmatched_sources(monkeypatch):

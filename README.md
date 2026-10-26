@@ -26,6 +26,13 @@ The planet table keeps published values and their limit flags. It adds Galactic 
 
 For host activity and stellar-wind quantities, supply independently measured CSV files using `--host-measurements` (`hostname`, `source_reference`, plus any of `host_xuv_luminosity_erg_s`, `host_convective_turnover_days`, `host_alfven_radius_stellar_radii`, and `host_flare_rate_per_day`). The supplied XUV luminosity and orbital scale yield XUV flux. Measured rotation and turnover periods yield Rossby number. An independently measured Alfvén radius is converted to astronomical units. Use `--orbital-orientations` (`pl_name`, `inclination_invariable_plane_deg`, `source_reference`) for full angular-momentum deficit. These values remain blank unless supported by measured inputs.
 
+Current archive downloads retain the stellar radius and rotation-period limit
+flags. A reported bound therefore stays excluded from the derived Alfvén radius
+or Rossby number, and nonfinite inputs leave the derived quantity blank.
+Angular-momentum deficits use an equivalent expression that retains tiny
+eccentricity and invariant-plane tilt contributions near circular, coplanar
+orbits instead of losing them through subtraction of nearly equal values.
+
 The system table lists confirmed planets by host. The pair table preserves every same-host pair and calculates mutual-Hill separations with Ephesos when true masses and orbital periods are available. The neighbor table includes only adjacent planets in complete, period-ordered systems. Planets with unknown order remain in the pair table without inferred inner/outer labels. Each pair row retains the stellar mass used to calculate its separation.
 
 The archive supplies published transmission, eclipse, and direct-imaging spectrum counts. `pergamon.exoplanet_catalog.load_mast_spectra(planet_name)` retrieves a real Exo.MAST curated-spectra file list with file URLs. Additional source-identified atmosphere observations can be joined with `--atmosphere-observations` using `pl_name`, `source`, `observation_id`, and `source_url`. Unmatched names remain visible in the long-form observation table. The catalog does not automatically download ExoAtmospheres or MAST EAOT records because neither offers a stable machine-readable export. Counts from those sources remain blank unless their records are supplied.
