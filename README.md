@@ -26,6 +26,10 @@ The planet table keeps published values and their limit flags. It adds Galactic 
 
 For host activity and stellar-wind quantities, supply independently measured CSV files using `--host-measurements` (`hostname`, `source_reference`, plus any of `host_xuv_luminosity_erg_s`, `host_convective_turnover_days`, `host_alfven_radius_stellar_radii`, and `host_flare_rate_per_day`). The supplied XUV luminosity and orbital scale yield XUV flux. Measured rotation and turnover periods yield Rossby number. An independently measured Alfvén radius is converted to astronomical units. Use `--orbital-orientations` (`pl_name`, `inclination_invariable_plane_deg`, `source_reference`) for full angular-momentum deficit. These values remain blank unless supported by measured inputs.
 
+Host measurements and orbital orientations require nonblank source references.
+Empty or whitespace-only references are rejected before quantities are derived.
+Valid reference text is retained exactly as supplied.
+
 Current archive downloads retain the stellar radius and rotation-period limit
 flags. A reported bound therefore stays excluded from the derived Alfvén radius
 or Rossby number, and nonfinite inputs leave the derived quantity blank.
@@ -35,7 +39,69 @@ orbits instead of losing them through subtraction of nearly equal values.
 
 The system table lists confirmed planets by host. The pair table preserves every same-host pair and calculates mutual-Hill separations with Ephesos when true masses and orbital periods are available. The neighbor table includes only adjacent planets in complete, period-ordered systems. Planets with unknown order remain in the pair table without inferred inner/outer labels. Each pair row retains the stellar mass used to calculate its separation.
 
-The archive supplies published transmission, eclipse, and direct-imaging spectrum counts. `pergamon.exoplanet_catalog.load_mast_spectra(planet_name)` retrieves a real Exo.MAST curated-spectra file list with file URLs. Additional source-identified atmosphere observations can be joined with `--atmosphere-observations` using `pl_name`, `source`, `observation_id`, and `source_url`. Unmatched names remain visible in the long-form observation table. The catalog does not automatically download ExoAtmospheres or MAST EAOT records because neither offers a stable machine-readable export. Counts from those sources remain blank unless their records are supplied.
+Derived calculations use finite measurements only. Infinite periods remain in
+the raw archive columns, but cannot establish orbital order, prove a companion
+absent, or make a system eligible for the complete-neighbor table. Known finite
+pair orderings remain available even when another planet's period is unknown.
+
+The archive supplies published transmission, eclipse, and direct-imaging spectrum counts. `pergamon.exoplanet_catalog.load_mast_spectra(planet_name)` retrieves a real Exo.MAST curated-spectra file list with file URLs. Additional source-identified atmosphere observations can be joined with `--atmosphere-observations` using `pl_name`, `source`, `observation_id`, and `source_url`. Unmatched names remain visible in the long-form observation table. Automatic ExoAtmospheres and MAST EAOT ingestion is not configured. Counts from those sources remain blank unless their records are supplied.
+
+For curated files that explicitly label the four-column transmission format,
+I can also read the measured spectrum through Exo.MAST's
+[documented spectra API](https://exo.mast.stsci.edu/docs/spectra_ws.html).
+
+```python
+from pergamon.exoplanet_catalog import load_mast_transmission_spectrum
+
+spectrum = load_mast_transmission_spectrum(
+	"WASP-39 b", "WASP-39b_transmission_Wakeford2018.txt"
+)
+```
+
+The columns are `wavelength_um`, `delta_wavelength_um`, `transit_depth`, and
+`transit_depth_error`. Delta wavelength stays as reported, without assuming it
+is a half-width or full bin width. Measured depths can be negative. Wavelengths
+and reported uncertainties must be positive, delta wavelengths nonnegative,
+and all values finite. Other headers and units are rejected rather than guessed.
+The DataFrame's `attrs` retain the original response text and header, source URL,
+planet and observation identifiers, UTC retrieval time, and response SHA-256.
+This reader preserves the file's measurement order and publication notes.
+
+I compare the measured depths with their reported errors on a shared logarithmic
+wavelength axis. The varying precision matters when comparing different parts
+of this compiled spectrum.
+
+```python
+from datetime import datetime, timezone
+from pathlib import Path
+from pergamon.exoplanet_catalog import plot_mast_transmission_spectrum
+
+tag = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+output = Path("examples/visuals") / f"wasp39b_transmission_{tag}.png"
+plot_mast_transmission_spectrum(
+	spectrum, output, source_label="Wakeford et al. (2018), compiled transmission data"
+)
+```
+
+PNG output uses 300 dpi. Set `typefileplot="pdf"` for vector output and
+`typeplotback="dark"` for a dark background. `font_size` defaults to 11 points
+at the native 6.5-inch figure width and can be set to match the intended document.
+Existing output files are preserved rather than overwritten.
+
+![WASP-39 b measured transmission depths and reported uncertainties on shared wavelength axes](examples/visuals/wasp39b_wakeford2018_transmission_uncertainty_white_20261026_230612.png)
+
+WASP-39 b transmission measurements compiled in Wakeford et al. (2018), from
+the [Exo.MAST source file](https://exo.mast.stsci.edu/api/v0.1/spectra/WASP-39%20b/file/WASP-39b_transmission_Wakeford2018.txt).
+The original header also credits Fischer et al. (2016), Sing et al. (2016),
+and Nikolov et al. (2016) for contributing observations. Both panels retain
+all 70 reported rows, with reported uncertainties in the lower panel. The figure
+contains no atmosphere model or estimate of feature significance.
+[Dark PDF version](examples/visuals/wasp39b_wakeford2018_transmission_uncertainty_dark_20261026_230612.pdf).
+
+Atmospheric record names, source identifiers, and URLs must contain non-whitespace
+text. Observation IDs are unique within each source and planet. Identical
+spectrum filenames for different planets are retained with their distinct source
+URLs rather than treated as duplicate observations.
 
 ## Gaia host-star phase space
 
@@ -78,6 +144,10 @@ Nicomedia's catalog workflows now live in `pergamon.catalogs`. The retained adap
 `pergamon.emission_spectroscopy.calc_tsmmesmm` retains transmission and emission metric calculations for these dictionaries, including the existing optional sampling of input uncertainties. Missing planet temperatures or radii remain missing in the returned metrics. TDpy owns the numerical metric functions.
 
 `pergamon.population_synthesis.retr_dictpoplstarcomp` preserves the inherited synthetic-system interface. With identical seeded inputs, the solar-like, one-planet path reproduced all 188 checked stellar and companion feature arrays and their unit labels from Nicomedia. Its chosen period, mass, distance, inclination, and multiplicity distributions are toy assumptions. The legacy moon, flare, and compact-object branches remain incomplete and should not be treated as validated physical populations. The generator uses NumPy's global random state, so set a seed explicitly for reproducible runs.
+
+For mass-based synthetic stars, `radistar` sets a common radius in solar units.
+It must be a finite positive real scalar. If omitted, the generator uses its
+existing mass-dependent density relation.
 
 ```python
 import numpy as np

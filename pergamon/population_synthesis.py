@@ -3,6 +3,7 @@
 import numpy as np
 import tdpy
 from tdpy import summgene
+from tdpy.numerics import has_masked_or_complex_values
 import chalcedon
 from tdpy.verbosity import print, tqdm
 from .catalogs import retr_dictpopltic8
@@ -82,12 +83,22 @@ def retr_dictpoplstarcomp( \
                           
                           # list of bands
                           liststrgband=None, \
+                          radistar=None, \
                           
                          ):
     '''
     Sample a synthetic population of the features of companions (e.g., exoplanets )and the companions to companions (e.g., exomoons) 
     hosted by a specified or random population of stellar systems.
+
+    For mass-based synthetic stars, radistar supplies a common radius in solar
+    units. Otherwise, radii follow the adopted mass-density relation.
     '''
+    if radistar is not None:
+        if (has_masked_or_complex_values(radistar) or np.ndim(radistar) != 0
+                or np.asarray(radistar).dtype.kind not in 'iuf'
+                or not np.isfinite(radistar) or radistar <= 0):
+            raise ValueError('radistar must be an unmasked finite positive real scalar.')
+        radistar = float(radistar)
     
     print('Simulating a population of systems via retr_dictpoplstarcomp()...')
     print('typesyst')
@@ -168,7 +179,9 @@ def retr_dictpoplstarcomp( \
         if (dictstar['radistar'][0] == 0.).any():
             raise Exception('')
         
-        densstar = 1.41 * dictstar['massstar'][0] / dictstar['radistar'][0]**3
+        densstar = tdpy.stellar_bulk_density(
+            dictstar['massstar'][0], dictstar['radistar'][0], solar_density_g_cm3=1.41
+        )
         tdpy.setp_dict(dictstar, 'densstar', densstar)
         
         dictstar['idenstar'] = dictstar['TICID']
@@ -201,10 +214,12 @@ def retr_dictpoplstarcomp( \
                 dictstar['massstar'][0] = tdpy.icdf_powr(np.random.rand(numbsyst), 0.1, 10., 2.)
             if radistar is not None:
                 dictstar['radistar'][0] = np.full(numbsyst, radistar)
-                dictstar['densstar'][0] = 1.4 * dictstar['massstar'][0] / dictstar['radistar'][0]**3
+                dictstar['densstar'][0] = tdpy.stellar_bulk_density(
+                    dictstar['massstar'][0], dictstar['radistar'][0], solar_density_g_cm3=1.4
+                )
             else:
                 dictstar['densstar'][0] = 1.4 * dictstar['massstar'][0]**(-0.7)
-                dictstar['radistar'][0] = 1.4 * dictstar['massstar'][0] / dictstar['densstar'][0]**(1. / 3.)
+                dictstar['radistar'][0] = (1.4 * dictstar['massstar'][0] / dictstar['densstar'][0])**(1. / 3.)
         elif typestar == 'wdwf':
             dictstar['radistar'] = [0.01 * np.ones(numbsyst), r'$R_{\odot}$']
             dictstar['massstar'] = [np.ones(numbsyst), r'$M_{\odot}$']

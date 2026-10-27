@@ -16,6 +16,7 @@ from matplotlib.colors import LogNorm
 import numpy as np
 import pandas as pd
 
+from tdpy.cli import add_plot_arguments
 from tdpy.verbosity import print
 from tdpy.plotting import plot_background_colors, save_plot, themed_plot
 
@@ -177,7 +178,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path,
                         help="saved NASA Exoplanet Archive planet CSV; defaults to a live query")
     parser.add_argument("--output-directory", type=Path, default=get_visuals_path() / "exoplanet_demographics")
-    parser.add_argument("--typefileplot", choices=("png", "pdf"), default="png")
+    add_plot_arguments(parser)
     parser.add_argument("--time-tag", help="output timestamp YYYYMMDD_HHMMSS; existing files are preserved")
     parser.add_argument('--typeplotback', choices=('white', 'dark'), default='white')
     arguments = parser.parse_args()

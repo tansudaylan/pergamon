@@ -3,6 +3,8 @@
 import argparse
 from datetime import datetime, timezone
 from itertools import combinations
+from hashlib import sha256
+from io import StringIO
 import json
 from pathlib import Path
 from urllib.parse import quote, urlencode
@@ -32,12 +34,12 @@ PLANET_COLUMNS = (
 
 
 def _measured_values(frame: pd.DataFrame, name: str, limit_name: str) -> pd.Series:
-    """Exclude reported bounds while retaining the original archive columns."""
+    """Use finite non-limit values while retaining the original archive columns."""
 
     values = pd.to_numeric(frame[name], errors="coerce")
     if limit_name in frame:
         values = values.where(pd.to_numeric(frame[limit_name], errors="coerce").eq(0))
-    return values
+    return values.where(np.isfinite(values))
 
 
 def load_confirmed_exoplanets(limit: int | None = None) -> pd.DataFrame:
@@ -138,8 +140,10 @@ def add_measured_host_features(catalog: pd.DataFrame, measurements: pd.DataFrame
     required = {"hostname", "source_reference"}
     if not required.issubset(measurements) or measurements["hostname"].isna().any():
         raise ValueError("Host measurements need hostname and source_reference")
-    if measurements["hostname"].duplicated().any() or measurements["source_reference"].isna().any():
-        raise ValueError("Host measurements need unique names and nonnull source references")
+    if (measurements["hostname"].duplicated().any()
+            or measurements["source_reference"].isna().any()
+            or measurements["source_reference"].astype("string").str.strip().eq("").any()):
+        raise ValueError("Host measurements need unique names and nonblank source references")
     allowed = {"host_xuv_luminosity_erg_s", "host_convective_turnover_days",
                "host_alfven_radius_stellar_radii", "host_flare_rate_per_day"}
     if not set(measurements).issubset(required | allowed):
@@ -175,7 +179,8 @@ def add_measured_orbit_orientation(catalog: pd.DataFrame, measurements: pd.DataF
     required = {"pl_name", "inclination_invariable_plane_deg", "source_reference"}
     if not required.issubset(measurements) or measurements["pl_name"].duplicated().any():
         raise ValueError("Orbital orientations need unique planet names, tilts, and source references")
-    if measurements[list(required)].isna().any().any():
+    if (measurements[list(required)].isna().any().any()
+            or measurements["source_reference"].astype("string").str.strip().eq("").any()):
         raise ValueError("Orbital orientation measurements must include provenance")
     result = catalog.merge(
         measurements[list(required)].rename(columns={"source_reference": "orientation_source_reference"}),
@@ -219,15 +224,107 @@ def load_mast_spectra(planet_name: str) -> pd.DataFrame:
     } for name in filenames), columns=("pl_name", "source", "observation_id", "source_url"))
 
 
+def load_mast_transmission_spectrum(planet_name: str, observation_id: str) -> pd.DataFrame:
+    """Read Exo.MAST's explicitly labeled four-column transmission format.
+
+    Delta wavelength is retained as reported, without interpreting it as a
+    half-width or full bin width. Other curated spectrum formats are rejected.
+    """
+    if any(not isinstance(value, str) or not value.strip() for value in (planet_name, observation_id)):
+        raise ValueError("Planet name and observation ID must be nonempty strings")
+    url = f"{MAST_SPECTRA_URL}/{quote(planet_name, safe='')}/file/{quote(observation_id, safe='')}"
+    print(f"Reading from {url}...")
+    with urlopen(url, timeout=30) as response:
+        payload = response.read()
+    text = payload.decode("utf-8")
+    header = "\n".join(line for line in text.splitlines() if line.lstrip().startswith("#"))
+    expected = "Wavelength (microns) Delta Wavelength (microns) (Rp/Rs)^2 (Rp/Rs)^2 +/-uncertainty"
+    if not any(" ".join(line.lstrip("# ").split()) == expected for line in header.splitlines()):
+        raise ValueError("Unsupported Exo.MAST transmission spectrum header or units")
+    spectrum = pd.read_csv(StringIO(text), sep=r"\s+", comment="#", header=None)
+    if spectrum.empty or spectrum.shape[1] != 4:
+        raise ValueError("Exo.MAST transmission spectra must contain four numeric columns")
+    values = spectrum.to_numpy(dtype=float)
+    if (not np.isfinite(values).all() or np.any(values[:, 0] <= 0)
+            or np.any(values[:, 1] < 0) or np.any(values[:, 3] <= 0)):
+        raise ValueError("Spectrum wavelengths and uncertainties must be positive and all values finite")
+    spectrum = pd.DataFrame(values, columns=(
+        "wavelength_um", "delta_wavelength_um", "transit_depth", "transit_depth_error",
+    ))
+    spectrum.attrs.update(
+        pl_name=planet_name, source="Exo.MAST", observation_id=observation_id,
+        source_url=url, source_header=header, source_text=text,
+        source_sha256=sha256(payload).hexdigest(),
+        retrieved_at_utc=datetime.now(timezone.utc).isoformat(),
+    )
+    return spectrum
+
+
+def plot_mast_transmission_spectrum(
+    spectrum: pd.DataFrame, output_path: str | Path, *, source_label: str,
+    typefileplot: str = "png", typeplotback: str = "white", font_size: float = 11,
+) -> Path:
+    """Plot measured depths and reported uncertainties without an atmosphere model."""
+    import textwrap
+    import matplotlib.pyplot as plt
+    from matplotlib.ticker import LogLocator, NullFormatter, ScalarFormatter
+    from tdpy.plotting import plot_background_colors, plot_file_path, plot_style, save_figure
+
+    if not isinstance(source_label, str) or not source_label.strip():
+        raise ValueError("A nonempty source_label is required")
+    if typefileplot not in ("png", "pdf"):
+        raise ValueError("typefileplot must be png or pdf")
+    columns = ("wavelength_um", "transit_depth", "transit_depth_error")
+    if not set(columns).issubset(spectrum):
+        raise ValueError("Spectrum must contain wavelength, transit depth, and reported uncertainty")
+    values = spectrum[list(columns)].to_numpy()
+    if (not len(values) or values.dtype.kind not in "iuf" or not np.isfinite(values).all()
+            or np.any(values[:, 0] <= 0) or np.any(values[:, 2] <= 0)):
+        raise ValueError("Spectrum must contain finite real measurements and positive wavelengths/errors")
+    output_path = Path(plot_file_path(output_path, typefileplot))
+    if output_path.exists():
+        raise FileExistsError(f"Refusing to overwrite spectrum figure {output_path}")
+    with plot_style(typeplotback):
+        background, foreground = plot_background_colors(typeplotback)
+        figure, axes = plt.subplots(
+            2, 1, sharex=True, figsize=(6.5, 4.8), layout="constrained",
+            gridspec_kw={"height_ratios": (3, 1)},
+        )
+        axes[0].errorbar(
+            values[:, 0], values[:, 1] * 1e6, yerr=values[:, 2] * 1e6,
+            fmt="o", linestyle="none", markersize=3, elinewidth=0.8,
+            color=foreground, label=textwrap.fill(source_label, width=54),
+        )
+        axes[0].set_ylabel("Transit depth [ppm]")
+        axes[0].set_title(str(spectrum.attrs.get("pl_name", "Transmission spectrum")), loc="left")
+        axes[0].legend(
+            loc="lower center", bbox_to_anchor=(0.5, 1.10), frameon=True,
+            fancybox=True, framealpha=1, facecolor=background, edgecolor=foreground,
+        )
+        axes[1].plot(values[:, 0], values[:, 2] * 1e6, "o", color=foreground, markersize=3)
+        axes[1].set(xlabel="Wavelength [micron]", ylabel="Reported error\n[ppm]")
+        axes[1].set_xscale("log")
+        axes[1].xaxis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
+        axes[1].xaxis.set_major_formatter(ScalarFormatter())
+        axes[1].xaxis.set_minor_formatter(NullFormatter())
+        for axis in axes:
+            axis.grid(False)
+        return Path(save_figure(
+            figure, output_path, typefileplot=typefileplot, typeplotback=typeplotback,
+            font_size=font_size, close_figure=True,
+        ))
+
+
 def attach_atmosphere_observations(planets: pd.DataFrame, observations: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Match source-identified atmosphere records to planet names without losing duplicates."""
+    """Match atmospheric records whose source observation IDs are scoped to each planet."""
 
     required = {"pl_name", "source", "observation_id", "source_url"}
     if not required.issubset(observations) or observations[list(required)].isna().any().any():
         raise ValueError("Atmosphere records need planet, source, observation ID, and URL")
-    if planets["pl_name"].duplicated().any() or observations.duplicated(["source", "observation_id"]).any():
-        raise ValueError("Planet names and source observation IDs must be unique")
-    if not observations.empty and (observations[list(required)] == "").any().any():
+    if planets["pl_name"].duplicated().any() or observations.duplicated(["source", "pl_name", "observation_id"]).any():
+        raise ValueError("Planet names must be unique. Source observation IDs must be unique within each planet")
+    if not observations.empty and any(
+            observations[name].astype("string").str.strip().eq("").any() for name in required):
         raise ValueError("Atmosphere source identifiers cannot be empty")
     records = observations.merge(planets[["pl_name", "hostname"]], on="pl_name", how="left",
                                  validate="many_to_one", indicator=True)
